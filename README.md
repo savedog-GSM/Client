@@ -1,4 +1,4 @@
-# 지켜멍 · RoboDog Safety Dashboard
+# 지켜멍
 
 로보독의 실시간 센서 상태와 안전 경로를 확인하기 위한 React + TypeScript 대시보드입니다.
 
