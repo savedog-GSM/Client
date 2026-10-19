@@ -61,10 +61,6 @@ function ControlPages() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <Link to="/location">
-            <Smartphone size={18} />
-            스마트폰 위치 전송
-          </Link>
           <p>
             함께 걷는 길을
             <br />

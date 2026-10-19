@@ -190,12 +190,6 @@ select {
   margin-top: auto;
   padding: 25px 12px 0;
 }
-.sidebar-bottom a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
 .sidebar-bottom p {
   margin-top: 25px;
   font-size: 12px;
