@@ -1,11 +1,25 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import { createApi, errorMessage } from '../api/client'
 import { connectStream, type StreamState } from '../api/realtime'
 import type { ConnectionSettings, DangerAlert, Report, RobotStatus, Telemetry } from '../api/types'
 
 export const initialStatus: RobotStatus = {
-  connected: false, lastSeenAt: null, lastLocationAt: null,
-  latitude: null, longitude: null, speed: null, sensor: null, risk: null,
+  connected: false,
+  lastSeenAt: null,
+  lastLocationAt: null,
+  latitude: null,
+  longitude: null,
+  speed: null,
+  sensor: null,
+  risk: null,
 }
 
 function useRobotData(settings: ConnectionSettings) {
@@ -21,7 +35,11 @@ function useRobotData(settings: ConnectionSettings) {
   const [refresh, setRefresh] = useState(0)
   const [now, setNow] = useState(Date.now())
   const updateReport = useCallback((report: Report) => {
-    setReports((current) => [report, ...current.filter((item) => item.id !== report.id)].sort((a, b) => b.id - a.id).slice(0, 1000))
+    setReports((current) =>
+      [report, ...current.filter((item) => item.id !== report.id)]
+        .sort((a, b) => b.id - a.id)
+        .slice(0, 1000),
+    )
   }, [])
 
   useEffect(() => {
@@ -32,7 +50,9 @@ function useRobotData(settings: ConnectionSettings) {
   useEffect(() => {
     const controller = new AbortController()
     let active = true
-    let revision = 0
+    let telemetryRevision = 0
+    let connectionRevision = 0
+    const changedReports = new Set<number>()
     let requestNumber = 0
     setStatus(initialStatus)
     setHistory([])
@@ -40,19 +60,39 @@ function useRobotData(settings: ConnectionSettings) {
     setReports([])
     const sync = async () => {
       const currentRequest = ++requestNumber
-      const currentRevision = revision
+      const currentTelemetry = telemetryRevision
+      const currentConnection = connectionRevision
+      changedReports.clear()
       setReportsLoading(true)
-      const [statusResult, reportsResult] = await Promise.allSettled([api.status(controller.signal), api.reports(controller.signal)])
+      const [statusResult, reportsResult] = await Promise.allSettled([
+        api.status(controller.signal),
+        api.reports(controller.signal),
+      ])
       if (!active || currentRequest !== requestNumber) return
       if (statusResult.status === 'fulfilled') {
-        if (currentRevision === revision) setStatus(statusResult.value)
+        setStatus((current) => ({
+          ...statusResult.value,
+          ...(currentConnection !== connectionRevision ? { connected: current.connected } : {}),
+          ...(currentTelemetry !== telemetryRevision
+            ? {
+                sensor: current.sensor,
+                risk: current.risk,
+                latitude: current.latitude,
+                longitude: current.longitude,
+                speed: current.speed,
+                lastSeenAt: current.lastSeenAt,
+                lastLocationAt: current.lastLocationAt,
+              }
+            : {}),
+        }))
         setStatusError('')
       } else setStatusError(errorMessage(statusResult.reason))
       if (reportsResult.status === 'fulfilled') {
         setReports((current) => {
-          if (currentRevision === revision) return reportsResult.value
           const byId = new Map(reportsResult.value.map((report) => [report.id, report]))
-          current.forEach((report) => byId.set(report.id, report))
+          current
+            .filter((report) => changedReports.has(report.id))
+            .forEach((report) => byId.set(report.id, report))
           return [...byId.values()].sort((a, b) => b.id - a.id).slice(0, 1000)
         })
         setReportsError('')
@@ -61,36 +101,79 @@ function useRobotData(settings: ConnectionSettings) {
     }
     void sync()
     const stop = connectStream(settings, {
-      state: (value) => { if (active) setStream(value) },
-      ready: () => { if (active) void sync() },
+      state: (value) => {
+        if (active) setStream(value)
+      },
+      ready: () => {
+        if (active) void sync()
+      },
       telemetry: (value) => {
         if (!active) return
-        revision++
-        setStatus((current) => ({ ...current, ...value, lastSeenAt: value.recordedAt,
-          lastLocationAt: value.latitude !== null && value.longitude !== null ? value.recordedAt : current.lastLocationAt }))
-        setHistory((current) => [...current.filter((item) => item.id !== value.id), value].slice(-60))
+        telemetryRevision++
+        setStatus((current) => ({
+          ...current,
+          ...value,
+          lastSeenAt: value.recordedAt,
+          lastLocationAt:
+            value.latitude !== null && value.longitude !== null
+              ? value.recordedAt
+              : current.lastLocationAt,
+        }))
+        setHistory((current) =>
+          [...current.filter((item) => item.id !== value.id), value].slice(-60),
+        )
       },
       status: (value) => {
         if (!active) return
-        revision++
+        connectionRevision++
         setStatus((current) => ({ ...current, connected: value.connected }))
       },
-      report: (value) => { if (active) { revision++; updateReport(value) } },
+      report: (value) => {
+        if (active) {
+          changedReports.add(value.id)
+          updateReport(value)
+        }
+      },
       alert: (value) => {
         if (!active) return
-        setAlerts((current) => current.some((item) => item.telemetry.id === value.telemetry.id)
-          ? current : [value, ...current].slice(0, 100))
+        setAlerts((current) =>
+          current.some((item) => item.telemetry.id === value.telemetry.id)
+            ? current
+            : [value, ...current].slice(0, 100),
+        )
       },
     })
-    return () => { active = false; controller.abort(); stop() }
+    return () => {
+      active = false
+      controller.abort()
+      stop()
+    }
   }, [api, settings, refresh, updateReport])
 
-  return { api, status, stream, statusError, reports, reportsError, reportsLoading, alerts, history, now,
-    updateReport, retry: () => setRefresh((value) => value + 1) }
+  return {
+    api,
+    status,
+    stream,
+    statusError,
+    reports,
+    reportsError,
+    reportsLoading,
+    alerts,
+    history,
+    now,
+    updateReport,
+    retry: () => setRefresh((value) => value + 1),
+  }
 }
 
 const RobotContext = createContext<ReturnType<typeof useRobotData> | null>(null)
-export function RobotProvider({ settings, children }: { settings: ConnectionSettings; children: ReactNode }) {
+export function RobotProvider({
+  settings,
+  children,
+}: {
+  settings: ConnectionSettings
+  children: ReactNode
+}) {
   const value = useRobotData(settings)
   return <RobotContext.Provider value={value}>{children}</RobotContext.Provider>
 }

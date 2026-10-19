@@ -15,15 +15,22 @@ export function connectStream(settings: ConnectionSettings, handlers: StreamHand
   url.protocol = url.protocol === 'https:' || url.protocol === 'wss:' ? 'wss:' : 'ws:'
   const client = new Client({
     brokerURL: url.href,
-    connectHeaders: settings.operatorToken ? { Authorization: `Bearer ${settings.operatorToken}` } : {},
+    connectHeaders: settings.operatorToken
+      ? { Authorization: `Bearer ${settings.operatorToken}` }
+      : {},
     reconnectDelay: 5000,
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
     connectionTimeout: 10000,
     onConnect: () => {
-      const subscribe = <T>(topic: string, receive: (value: T) => void) => client.subscribe(topic, (message) => {
-        try { receive(JSON.parse(message.body) as T) } catch { handlers.state('error') }
-      })
+      const subscribe = <T>(topic: string, receive: (value: T) => void) =>
+        client.subscribe(topic, (message) => {
+          try {
+            receive(JSON.parse(message.body) as T)
+          } catch {
+            handlers.state('error')
+          }
+        })
       subscribe('/topic/robot/telemetry', handlers.telemetry)
       subscribe('/topic/robot/status', handlers.status)
       subscribe('/topic/reports', handlers.report)
@@ -37,5 +44,7 @@ export function connectStream(settings: ConnectionSettings, handlers: StreamHand
   })
   handlers.state('connecting')
   client.activate()
-  return () => { void client.deactivate() }
+  return () => {
+    void client.deactivate()
+  }
 }
