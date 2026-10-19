@@ -1,8 +1,8 @@
 let loading: Promise<typeof kakao.maps> | null = null
 
-export function loadKakaoMaps() {
+export function loadKakaoMaps(): Promise<typeof kakao.maps> {
   if (loading) return loading
-  loading = new Promise((resolve, reject) => {
+  loading = new Promise<typeof kakao.maps>((resolve, reject) => {
     const key = import.meta.env.VITE_KAKAO_MAP_APP_KEY
     if (!key) { reject(new Error('카카오 지도 키가 설정되지 않았습니다. VITE_KAKAO_MAP_APP_KEY를 설정해주세요.')); return }
     const script = document.createElement('script')

@@ -63,7 +63,7 @@ export function ReportDetail({ id }: { id: number }) {
   }
   const current = liveReport && report && liveReport.status !== report.status ? liveReport : report
   const canProcess = current && ['PENDING', 'FAILED'].includes(current.status)
-  const validReceipt = !!receipt.trim() && receipt.trim().length <= 100 && !/[\u0000-\u001f\u007f]/.test(receipt)
+  const validReceipt = !!receipt.trim() && receipt.trim().length <= 100 && ![...receipt].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
   return <section className="panel report-detail"><ErrorNotice message={error} retry={() => setRevision(revision + 1)} />{!current ? <Empty>{error ? '신고를 불러오지 못했습니다.' : '상세 내용을 불러오는 중입니다.'}</Empty> : <>
     <div className="section-heading"><h2>{hazardNames[current.hazardType]} #{current.id}</h2><RiskBadge risk={current.risk} /></div>
     <span className={`badge ${current.status.toLowerCase()}`}>{reportNames[current.status]}</span><p className="report-description">{current.description}</p>

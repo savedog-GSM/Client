@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createApi, errorMessage } from '../../api/client'
 import type { ConnectionSettings, LocationInput } from '../../api/types'
 import { ErrorNotice, number, PageTitle } from '../../components/ui'
@@ -11,10 +11,8 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
   const [error, setError] = useState('')
   const [wakeMessage, setWakeMessage] = useState('화면 꺼짐 방지를 지원하지 않으면 화면을 직접 켜두세요.')
   const [message, setMessage] = useState('전송 시작 버튼을 눌러 위치 접근을 허용해주세요.')
-  const generation = useRef(0)
   useEffect(() => {
     if (!running) return
-    const current = ++generation.current
     let active = true
     let sending = false
     let queued: LocationInput | null = null
@@ -28,7 +26,7 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
         queued = null
         try {
           await api.location(next)
-          if (active && generation.current === current) { setSentAt(new Date().toLocaleTimeString('ko-KR')); setError(''); setMessage('위치를 서버에 전송하고 있습니다.') }
+          if (active) { setSentAt(new Date().toLocaleTimeString('ko-KR')); setError(''); setMessage('위치를 서버에 전송하고 있습니다.') }
         } catch (error) { if (active) setError(errorMessage(error)) }
       }
       sending = false
@@ -58,7 +56,7 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
     void keepAwake()
     const visibility = () => { if (document.visibilityState === 'visible') void keepAwake() }
     document.addEventListener('visibilitychange', visibility)
-    return () => { active = false; generation.current++; navigator.geolocation.clearWatch(watchId); void wakeLock?.release(); document.removeEventListener('visibilitychange', visibility) }
+    return () => { active = false; navigator.geolocation.clearWatch(watchId); void wakeLock?.release(); document.removeEventListener('visibilitychange', visibility) }
   }, [api, running])
   function start() {
     setError('')
