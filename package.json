@@ -9,7 +9,12 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "format": "prettier --write src vite.config.ts vitest.config.ts eslint.config.js",
+    "format:check": "prettier --check src vite.config.ts vitest.config.ts eslint.config.js",
     "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   },
   "dependencies": {
     "@stomp/stompjs": "^7.3.0",

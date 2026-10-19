@@ -1,0 +1,22 @@
+name: 오류 수정
+description: 동작 오류를 수정합니다.
+title: "[fix] "
+labels: [fix]
+assignees: [jiwoo1222]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 상세 내용
+      description: 재현 방법과 기대 동작을 작성해주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 작업 목록
+      value: "- [ ] 오류 재현\n- [ ] 수정 및 검증"
+  - type: textarea
+    id: extra
+    attributes:
+      label: 추가사항
