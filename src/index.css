@@ -743,3 +743,181 @@ button[aria-pressed='true'] {
 .skip-link:focus {
   top: 10px;
 }
+@media (min-width: 1600px) {
+  .main-content {
+    padding-top: 26px;
+  }
+  .metric {
+    padding: 28px;
+  }
+}
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 200px;
+  }
+  .workspace {
+    margin-left: 200px;
+  }
+  .main-content {
+    padding: 16px 24px 40px;
+  }
+  .metric-grid {
+    gap: 12px;
+  }
+  .metric {
+    padding: 17px;
+  }
+  .metric strong {
+    font-size: 23px;
+  }
+  .map-layout {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(270px, 1fr);
+    gap: 18px;
+  }
+}
+@media (max-width: 900px) {
+  .sidebar {
+    width: 76px;
+    padding: 28px 10px;
+  }
+  .brand {
+    margin: 0 3px 35px;
+  }
+  .brand > div,
+  .nav-heading,
+  .sidebar-bottom {
+    display: none;
+  }
+  .brand > span {
+    min-width: 46px;
+  }
+  .sidebar nav a {
+    font-size: 0;
+    justify-content: center;
+    padding: 15px 10px;
+  }
+  .sidebar nav svg {
+    flex-shrink: 0;
+  }
+  .nav-count {
+    display: none;
+  }
+  .workspace {
+    margin-left: 76px;
+  }
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .topbar {
+    padding-left: 24px;
+  }
+  .topbar > span {
+    display: none;
+  }
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    padding: 12px 15px;
+    border-right: 0;
+    border-bottom: 1px solid #dfe8e1;
+  }
+  .app-shell {
+    display: block;
+  }
+  .brand {
+    margin: 0 0 16px;
+    font-size: 19px;
+  }
+  .brand > div {
+    display: block;
+  }
+  .brand > span {
+    min-width: 36px;
+    height: 36px;
+    width: 36px;
+    border-radius: 10px;
+  }
+  .sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+  }
+  .sidebar nav a {
+    font-size: 11px;
+    flex-shrink: 0;
+    padding: 9px 10px;
+    gap: 5px;
+  }
+  .sidebar nav svg {
+    width: 14px;
+  }
+  .workspace {
+    margin-left: 0;
+  }
+  .topbar {
+    height: 45px;
+    padding: 0 18px;
+  }
+  .settings-button {
+    top: 15px;
+    right: 15px;
+    font-size: 11px;
+    padding: 8px;
+  }
+  .main-content {
+    padding: 14px 16px 30px;
+  }
+  .sound-bar {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .sound-bar span {
+    font-size: 9px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .page-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .metric {
+    padding: 17px;
+  }
+  .metric strong {
+    font-size: 22px;
+  }
+  .panel {
+    padding: 19px;
+  }
+  .map-container {
+    height: 430px;
+  }
+  .alarm {
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+  .error-notice {
+    flex-wrap: wrap;
+  }
+  .phone-header {
+    padding: 22px;
+  }
+  .location-page {
+    padding: 10px 18px 30px;
+  }
+  .location-card {
+    padding: 24px;
+  }
+}
