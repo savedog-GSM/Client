@@ -32,11 +32,12 @@ PowerShell에서는 `cp` 대신 `Copy-Item .env.example .env`를 사용합니다
 `.env.example`을 복사한 `.env`에 서버 주소와 카카오 지도 JavaScript 키를 입력합니다.
 
 ```dotenv
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_URL=http://localhost:8080
 VITE_WS_URL=
 VITE_KAKAO_MAP_APP_KEY=
 ```
 
+- `VITE_API_URL`을 API 서버 주소로 사용합니다. 기존 `VITE_API_BASE_URL`도 지원합니다.
 - `VITE_WS_URL`을 비우면 API 서버 주소의 `/ws`로 연결합니다.
 - 관제·장치 토큰은 화면의 **연결 설정**에서 입력합니다. 새로고침하면 지워집니다.
 - 서버의 CORS 허용 목록과 카카오 개발자 콘솔에 프론트 주소를 등록해야 합니다.
