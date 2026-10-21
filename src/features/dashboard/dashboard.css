@@ -125,9 +125,9 @@
   border: 1px solid #e5e5e5;
   border-radius: 12px;
 }
-.dashboard-map,
-.dashboard-alerts,
-.dashboard-trend {
+.dashboard-page .dashboard-map,
+.dashboard-page .dashboard-alerts,
+.dashboard-page .dashboard-trend {
   padding: 0;
 }
 .dashboard-map,
