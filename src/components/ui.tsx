@@ -27,7 +27,6 @@ export function PageTitle({
   return (
     <div className="page-title">
       <div>
-        <p className="eyebrow">SAVEDOG CONTROL</p>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>

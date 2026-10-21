@@ -21,15 +21,15 @@ import MapPage from './features/map/MapPage'
 import ReportsPage from './features/reports/ReportsPage'
 
 const navigation = [
-  { path: '/', label: '대시보드', icon: Activity },
-  { path: '/map', label: '안전 지도', icon: Map },
-  { path: '/history', label: '이동 기록', icon: History },
+  { path: '/', label: '대시보드', icon: Activity, image: '/figma/dashboard.svg' },
+  { path: '/map', label: '경로', icon: Map, image: '/figma/map.svg' },
+  { path: '/history', label: '통계', icon: History, image: '/figma/history.svg' },
   { path: '/reports', label: '위험 신고', icon: FileText },
-  { path: '/alerts', label: '위험 알림', icon: Bell },
+  { path: '/alerts', label: '알림', icon: Bell, image: '/figma/alerts.svg' },
   { path: '/location', label: '위치 전송', icon: Smartphone },
 ]
 function ControlPages() {
-  const { stream, reports, retry } = useRobot()
+  const { stream, reports, retry, alerts } = useRobot()
   const streamNames = {
     connecting: '연결 중',
     connected: '실시간 연결됨',
@@ -48,22 +48,25 @@ function ControlPages() {
             지켜멍<small>SaveDog</small>
           </div>
         </Link>
-        <p className="nav-heading">관제 메뉴</p>
         <nav aria-label="주 메뉴">
-          {navigation.map(({ path, label, icon: Icon }) => (
+          {navigation.map(({ path, label, icon: Icon, image }) => (
             <NavLink to={path} end={path === '/'} key={path}>
-              <Icon size={19} />
+              {image ? <img src={image} alt="" /> : <Icon size={21} />}
               {label}
               {path === '/reports' && waiting > 0 && <span className="nav-count">{waiting}</span>}
+              {path === '/alerts' && alerts.length > 0 && (
+                <span className="nav-count">{alerts.length}</span>
+              )}
             </NavLink>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <p>
-            함께 걷는 길을
-            <br />
-            조금 더 안전하게.
-          </p>
+          <div className="sidebar-connection">
+            <span className={`stream-dot ${stream}`} />
+            <span>{streamNames[stream]}</span>
+          </div>
+          <p>지켜멍 로봇 · DEVICE 01</p>
+          {stream !== 'connected' && <button onClick={retry}>다시 연결</button>}
         </div>
       </aside>
       <div className="workspace">
@@ -115,7 +118,10 @@ function Application() {
       <a className="skip-link" href="#main">
         본문으로 이동
       </a>
-      <button className="settings-button" onClick={() => setShowSettings(true)}>
+      <button
+        className={`settings-button ${phone ? 'phone-settings' : ''}`}
+        onClick={() => setShowSettings(true)}
+      >
         <Settings size={17} />
         연결 설정
       </button>
