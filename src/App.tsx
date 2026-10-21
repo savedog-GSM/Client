@@ -43,7 +43,7 @@ function ControlPages() {
     <div className="app-shell">
       <aside className="sidebar">
         <Link to="/" className="brand" aria-label="지켜멍 대시보드">
-          <img src="/savedog-logo.png" alt="" width={52} height={52} />
+          <img src="/savedog-icon.png" alt="" width={52} height={52} />
           <div>
             지켜멍<small>SaveDog</small>
           </div>
@@ -123,7 +123,7 @@ function Application() {
         <>
           <header className="phone-header">
             <Link to="/" className="phone-brand">
-              <img src="/savedog-logo.png" alt="" width={38} height={38} />
+              <img src="/savedog-icon.png" alt="" width={38} height={38} />
               <span>
                 지켜멍 <small>관제 센터로 이동</small>
               </span>

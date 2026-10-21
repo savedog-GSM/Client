@@ -145,6 +145,7 @@ select {
   width: 52px;
   height: 52px;
   object-fit: contain;
+  border-radius: 12px;
 }
 .brand small {
   display: block;
@@ -818,6 +819,7 @@ button[aria-pressed='true'] {
   display: block;
   flex-shrink: 0;
   object-fit: contain;
+  border-radius: 9px;
 }
 .phone-brand span {
   display: grid;
