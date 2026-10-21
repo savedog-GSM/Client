@@ -25,24 +25,37 @@ export default function MapPage() {
   const [mapError, setMapError] = useState('')
   const [recordsError, setRecordsError] = useState('')
   const [currentPosition, setCurrentPosition] = useState<Point | null>(null)
+  const [positionAccuracy, setPositionAccuracy] = useState<number | null>(null)
+  const [locating, setLocating] = useState(true)
+  const [locationRevision, setLocationRevision] = useState(0)
   const [locationMessage, setLocationMessage] = useState('현재 위치를 확인하고 있습니다.')
   const [revision, setRevision] = useState(0)
   const searchRevision = useRef(0)
   const onBounds = useCallback((value: Bounds) => setBounds(value), [])
   useEffect(() => {
+    setCurrentPosition(null)
+    setPositionAccuracy(null)
+    setLocating(true)
+    setLocationMessage('현재 위치를 확인하고 있습니다.')
     if (!navigator.geolocation) {
       setLocationMessage('현재 위치를 지원하지 않는 브라우저입니다. 기본 위치로 표시합니다.')
+      setLocating(false)
       return
     }
     let active = true
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         if (!active) return
-        setCurrentPosition({ latitude: coords.latitude, longitude: coords.longitude })
+        const point = { latitude: coords.latitude, longitude: coords.longitude }
+        setCurrentPosition(point)
+        setPositionAccuracy(Number.isFinite(coords.accuracy) ? coords.accuracy : null)
+        setLocating(false)
+        if (locationRevision > 0) setFocus((previous) => previous ?? point)
         setLocationMessage('현재 위치를 기준으로 지도를 표시합니다.')
       },
       (error) => {
         if (!active) return
+        setLocating(false)
         setLocationMessage(
           error.code === 1
             ? '위치 권한이 거부되었습니다. 기본 위치로 표시합니다. 브라우저 설정에서 위치를 허용해주세요.'
@@ -54,7 +67,7 @@ export default function MapPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [locationRevision])
   useEffect(() => {
     const controller = new AbortController()
     setMapError('')
@@ -166,6 +179,7 @@ export default function MapPage() {
           <SafetyMap
             focus={focus}
             currentPosition={currentPosition}
+            positionAccuracy={positionAccuracy}
             position={position}
             start={start}
             end={end}
@@ -179,6 +193,28 @@ export default function MapPage() {
           <p className="muted" role="status">
             {locationMessage}
           </p>
+          {positionAccuracy !== null && (
+            <p className="muted" role="status">
+              위치 오차 범위: 약 {Math.ceil(positionAccuracy).toLocaleString('ko-KR')}m.
+              {positionAccuracy > 100 &&
+                ' 대략적인 위치입니다. PC에서는 실제 위치와 멀리 떨어질 수 있어요. 정확한 출발지는 주소 검색으로 선택해주세요.'}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={locating}
+            onClick={() => {
+              if (startAddress === '현재 위치') {
+                invalidateRoute()
+                setStart(null)
+                setStartAddress('')
+              }
+              setFocus(null)
+              setLocationRevision((value) => value + 1)
+            }}
+          >
+            {locating ? '위치 확인 중…' : '현재 위치 다시 확인'}
+          </button>
           <p className="muted">
             지도를 눌러 {selecting === 'start' ? '출발지' : '도착지'}를 선택하세요. 로보독 표시는
             마지막 수신 위치입니다.

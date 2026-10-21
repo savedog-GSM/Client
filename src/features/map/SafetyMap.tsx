@@ -11,6 +11,7 @@ export interface Bounds {
   neLng: number
 }
 interface Props {
+  positionAccuracy?: number | null
   focus?: Point | null
   currentPosition: Point | null
   position: Point | null
@@ -139,13 +140,21 @@ export default function SafetyMap(props: Props) {
     if (props.position) {
       marker(props.position, '로보독', '#13765b')
     }
-    if (props.currentPosition) marker(props.currentPosition, '현재 위치', '#234cba')
+    if (props.currentPosition)
+      marker(
+        props.currentPosition,
+        props.positionAccuracy != null && props.positionAccuracy > 100
+          ? '대략적인 현재 위치'
+          : '현재 위치',
+        '#234cba',
+      )
     if (props.start) marker(props.start, '출발', '#234cba')
     if (props.end) marker(props.end, '도착', '#7136a3')
     return () => overlays.forEach((overlay) => overlay.setMap(null))
   }, [
     ready,
     props.currentPosition,
+    props.positionAccuracy,
     props.position,
     props.start,
     props.end,
