@@ -19,9 +19,37 @@ export default function MapPage() {
   const [error, setError] = useState('')
   const [mapError, setMapError] = useState('')
   const [recordsError, setRecordsError] = useState('')
+  const [currentPosition, setCurrentPosition] = useState<Point | null>(null)
+  const [locationMessage, setLocationMessage] = useState('현재 위치를 확인하고 있습니다.')
   const [revision, setRevision] = useState(0)
   const searchRevision = useRef(0)
   const onBounds = useCallback((value: Bounds) => setBounds(value), [])
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationMessage('현재 위치를 지원하지 않는 브라우저입니다. 기본 위치로 표시합니다.')
+      return
+    }
+    let active = true
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (!active) return
+        setCurrentPosition({ latitude: coords.latitude, longitude: coords.longitude })
+        setLocationMessage('현재 위치를 기준으로 지도를 표시합니다.')
+      },
+      (error) => {
+        if (!active) return
+        setLocationMessage(
+          error.code === 1
+            ? '위치 권한이 거부되었습니다. 기본 위치로 표시합니다. 브라우저 설정에서 위치를 허용해주세요.'
+            : '현재 위치를 확인하지 못했습니다. 기본 위치로 표시합니다.',
+        )
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
+    )
+    return () => {
+      active = false
+    }
+  }, [])
   useEffect(() => {
     const controller = new AbortController()
     setMapError('')
@@ -127,6 +155,7 @@ export default function MapPage() {
             <span>● 보라색: 탐색 경로</span>
           </div>
           <SafetyMap
+            currentPosition={currentPosition}
             position={position}
             start={start}
             end={end}
@@ -137,6 +166,9 @@ export default function MapPage() {
             onSelect={selectPoint}
             onBounds={onBounds}
           />
+          <p className="muted" role="status">
+            {locationMessage}
+          </p>
           <p className="muted">
             지도를 눌러 {selecting === 'start' ? '출발지' : '도착지'}를 선택하세요. 로보독 표시는
             마지막 수신 위치입니다.
