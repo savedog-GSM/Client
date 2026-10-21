@@ -6,8 +6,10 @@ import { ApiError } from '../../api/client'
 import { status } from '../../test/fixtures'
 import MapPage from './MapPage'
 import { searchLocations } from './searchLocations'
+import { reverseGeocode } from './reverseGeocode'
 
 vi.mock('./searchLocations', () => ({ searchLocations: vi.fn() }))
+vi.mock('./reverseGeocode', () => ({ reverseGeocode: vi.fn() }))
 
 const robot = vi.hoisted(() => ({
   api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn() },
@@ -36,6 +38,7 @@ beforeEach(() => {
   robot.api.segments.mockResolvedValue([])
   robot.getCurrentPosition.mockReset()
   vi.mocked(searchLocations).mockReset()
+  vi.mocked(reverseGeocode).mockReset().mockResolvedValue('광주 광산구 상무대로 312')
   vi.stubGlobal(
     'navigator',
     Object.create(navigator, {
@@ -44,6 +47,17 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
+it('지도에서 선택한 출발지와 도착지를 좌표 대신 주소로 표시한다', async () => {
+  vi.mocked(reverseGeocode)
+    .mockResolvedValueOnce('서울 출발 도로명 1')
+    .mockResolvedValueOnce('서울 도착 도로명 2')
+  render(<MapPage />)
+  await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
+  expect(await screen.findByRole('button', { name: '출발지 선택 서울 출발 도로명 1' })).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
+  expect(await screen.findByRole('button', { name: '도착지 선택 서울 도착 도로명 2' })).toBeTruthy()
+  expect(screen.queryByText('37.50000, 127.00000')).toBeNull()
+})
 it('PC에서 오차가 큰 위치를 받으면 대략적인 위치임을 안내한다', async () => {
   robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
     success({
@@ -65,7 +79,11 @@ it('위치를 다시 확인하면 이전 현재 위치 출발점을 지우고 �
     })
   render(<MapPage />)
   await userEvent.click(screen.getByRole('button', { name: '현재 위치에서 출발' }))
-  expect((screen.getByLabelText('출발지 주소') as HTMLInputElement).value).toBe('현재 위치')
+  await waitFor(() =>
+    expect((screen.getByLabelText('출발지 주소') as HTMLInputElement).value).toBe(
+      '광주 광산구 상무대로 312',
+    ),
+  )
   await userEvent.click(screen.getByRole('button', { name: '현재 위치 다시 확인' }))
   expect((screen.getByLabelText('출발지 주소') as HTMLInputElement).value).toBe('')
   expect(
@@ -149,7 +167,9 @@ it('위치 권한을 거부하면 안내하고 지도 선택 기능은 유지한
   expect(await screen.findByText(/위치 권한이 거부되었습니다/)).toBeTruthy()
   expect(screen.getByLabelText('지도 현재 위치').textContent).toBe('null')
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
-  expect(screen.getByText('37.50000, 127.00000')).toBeTruthy()
+  expect(
+    await screen.findByRole('button', { name: '출발지 선택 광주 광산구 상무대로 312' }),
+  ).toBeTruthy()
 })
 it('위치 조회가 지연되면 실패 안내를 표시한다', async () => {
   robot.getCurrentPosition.mockImplementation(
