@@ -4,6 +4,7 @@ import type { PathMode, PathResult, Point, SafetyRecord, Segment } from '../../a
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
 import SafetyMap, { type Bounds } from './SafetyMap'
+import AddressSearch from './AddressSearch'
 
 export default function MapPage() {
   const { api, status, history, reports } = useRobot()
@@ -12,6 +13,9 @@ export default function MapPage() {
   const [bounds, setBounds] = useState<Bounds | null>(null)
   const [start, setStart] = useState<Point | null>(null)
   const [end, setEnd] = useState<Point | null>(null)
+  const [startAddress, setStartAddress] = useState('')
+  const [endAddress, setEndAddress] = useState('')
+  const [focus, setFocus] = useState<Point | null>(null)
   const [selecting, setSelecting] = useState<'start' | 'end'>('start')
   const [mode, setMode] = useState<PathMode>('SAFEST')
   const [route, setRoute] = useState<PathResult | null>(null)
@@ -120,8 +124,12 @@ export default function MapPage() {
     invalidateRoute()
     if (selecting === 'start') {
       setStart(point)
+      setStartAddress(`${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`)
       setSelecting('end')
-    } else setEnd(point)
+    } else {
+      setEnd(point)
+      setEndAddress(`${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`)
+    }
   }
   async function search() {
     if (!start || !end) return
@@ -155,6 +163,7 @@ export default function MapPage() {
             <span>● 보라색: 탐색 경로</span>
           </div>
           <SafetyMap
+            focus={focus}
             currentPosition={currentPosition}
             position={position}
             start={start}
@@ -177,6 +186,50 @@ export default function MapPage() {
         <aside className="panel">
           <h2>경로 탐색</h2>
           <p>수집된 길 안에서 경로를 탐색합니다.</p>
+          <AddressSearch
+            label="출발지 주소"
+            value={startAddress}
+            onChange={(value) => {
+              invalidateRoute()
+              setStartAddress(value)
+              setStart(null)
+            }}
+            onSelect={(location) => {
+              invalidateRoute()
+              setStart({ latitude: location.latitude, longitude: location.longitude })
+              setStartAddress(location.name)
+              setFocus(location)
+              setSelecting('end')
+            }}
+          />
+          <button
+            className="current-start"
+            disabled={!currentPosition}
+            onClick={() => {
+              invalidateRoute()
+              setStart(currentPosition)
+              setStartAddress('현재 위치')
+              setFocus(currentPosition)
+              setSelecting('end')
+            }}
+          >
+            현재 위치에서 출발
+          </button>
+          <AddressSearch
+            label="도착지 주소"
+            value={endAddress}
+            onChange={(value) => {
+              invalidateRoute()
+              setEndAddress(value)
+              setEnd(null)
+            }}
+            onSelect={(location) => {
+              invalidateRoute()
+              setEnd({ latitude: location.latitude, longitude: location.longitude })
+              setEndAddress(location.name)
+              setFocus(location)
+            }}
+          />
           <div className="route-points">
             <button aria-pressed={selecting === 'start'} onClick={() => setSelecting('start')}>
               <strong>출발지 선택</strong>
@@ -200,6 +253,8 @@ export default function MapPage() {
             onClick={() => {
               invalidateRoute()
               setStart(position)
+              setStartAddress('마지막 로보독 위치')
+              setFocus(position)
               setSelecting('end')
             }}
           >

@@ -667,6 +667,57 @@ button[aria-pressed='true'] {
 .map-layout aside label {
   margin-top: 22px;
 }
+.address-search {
+  margin-top: 18px;
+}
+.map-layout aside .address-search label {
+  margin-top: 0;
+}
+.address-input {
+  display: flex;
+  margin-top: 8px;
+  border: 1px solid #d7e1db;
+  border-radius: 9px;
+  background: #fff;
+}
+.address-input input {
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+}
+.address-input button {
+  display: flex;
+  align-items: center;
+  border: 0;
+  margin: 4px;
+  padding: 8px;
+  background: #edf5f0;
+}
+.address-results {
+  list-style: none;
+  padding: 4px;
+  margin: 8px 0 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #dce5df;
+  border-radius: 9px;
+  background: white;
+  box-shadow: 0 6px 18px #203a3210;
+}
+.address-results button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  overflow-wrap: anywhere;
+}
+.current-start {
+  width: 100%;
+  margin-top: 8px;
+  color: #187456;
+  background: #edf5f0;
+}
 .route-points {
   display: grid;
   gap: 10px;

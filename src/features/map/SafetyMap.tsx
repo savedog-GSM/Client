@@ -11,6 +11,7 @@ export interface Bounds {
   neLng: number
 }
 interface Props {
+  focus?: Point | null
   currentPosition: Point | null
   position: Point | null
   start: Point | null
@@ -154,12 +155,17 @@ export default function SafetyMap(props: Props) {
     props.route,
   ])
   useEffect(() => {
-    if (!ready || !map.current || props.route || centered.current === 'current') return
+    if (!ready || !map.current || props.route || props.focus || centered.current === 'current')
+      return
     const position = props.currentPosition ?? props.position
     if (!position || (!props.currentPosition && centered.current === 'robot')) return
     map.current.setCenter(new window.kakao.maps.LatLng(position.latitude, position.longitude))
     centered.current = props.currentPosition ? 'current' : 'robot'
-  }, [ready, props.currentPosition, props.position, props.route])
+  }, [ready, props.currentPosition, props.position, props.route, props.focus])
+  useEffect(() => {
+    if (!ready || !map.current || !props.focus) return
+    map.current.setCenter(new window.kakao.maps.LatLng(props.focus.latitude, props.focus.longitude))
+  }, [ready, props.focus])
   useEffect(() => {
     if (!ready || !map.current || !props.route?.path.length) return
     const bounds = new window.kakao.maps.LatLngBounds()
