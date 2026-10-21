@@ -965,7 +965,9 @@ button[aria-pressed='true'] {
 }
 @media (max-width: 600px) {
   .sidebar {
-    position: static;
+    position: sticky;
+    inset: 0 0 auto;
+    max-height: 100dvh;
     width: 100%;
     padding: 12px 15px;
     border-right: 0;
