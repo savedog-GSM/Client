@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { Point } from '../../api/types'
@@ -44,6 +44,43 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
+it('PC에서 오차가 큰 위치를 받으면 대략적인 위치임을 안내한다', async () => {
+  robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
+    success({
+      coords: { latitude: 35.123, longitude: 126.456, accuracy: 2500 },
+    } as GeolocationPosition)
+  })
+  render(<MapPage />)
+  expect(await screen.findByText(/위치 오차 범위: 약 2,500m/)).toBeTruthy()
+  expect(screen.getByText(/대략적인 위치입니다/)).toBeTruthy()
+})
+it('위치를 다시 확인하면 이전 현재 위치 출발점을 지우고 새 좌표를 받는다', async () => {
+  let finish: PositionCallback = () => {}
+  robot.getCurrentPosition
+    .mockImplementationOnce((success: PositionCallback) => {
+      success({ coords: { latitude: 35, longitude: 126, accuracy: 2000 } } as GeolocationPosition)
+    })
+    .mockImplementationOnce((success: PositionCallback) => {
+      finish = success
+    })
+  render(<MapPage />)
+  await userEvent.click(screen.getByRole('button', { name: '현재 위치에서 출발' }))
+  expect((screen.getByLabelText('출발지 주소') as HTMLInputElement).value).toBe('현재 위치')
+  await userEvent.click(screen.getByRole('button', { name: '현재 위치 다시 확인' }))
+  expect((screen.getByLabelText('출발지 주소') as HTMLInputElement).value).toBe('')
+  expect(
+    (screen.getByRole('button', { name: '현재 위치에서 출발' }) as HTMLButtonElement).disabled,
+  ).toBe(true)
+  expect(screen.getByLabelText('지도 현재 위치').textContent).toBe('null')
+  await act(async () => {
+    finish({ coords: { latitude: 35.16, longitude: 126.9, accuracy: 20 } } as GeolocationPosition)
+  })
+  expect(screen.getByLabelText('지도 현재 위치').textContent).toBe(
+    JSON.stringify({ latitude: 35.16, longitude: 126.9 }),
+  )
+  expect(screen.getByText(/위치 오차 범위: 약 20m/)).toBeTruthy()
+  expect(screen.queryByText(/대략적인 위치입니다/)).toBeNull()
+})
 it('현재 위치를 출발지로, 검색한 주소를 도착지로 설정한다', async () => {
   robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
     success({ coords: { latitude: 35.123, longitude: 126.456 } } as GeolocationPosition)
