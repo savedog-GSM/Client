@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { Point } from '../../api/types'
 import { ApiError } from '../../api/client'
 import { status } from '../../test/fixtures'
@@ -8,13 +8,21 @@ import MapPage from './MapPage'
 
 const robot = vi.hoisted(() => ({
   api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn() },
+  getCurrentPosition: vi.fn(),
 }))
 vi.mock('../../app/RobotProvider', () => ({
   useRobot: () => ({ api: robot.api, status, reports: [], history: [] }),
 }))
 vi.mock('./SafetyMap', () => ({
-  default: ({ onSelect }: { onSelect: (point: Point) => void }) => (
+  default: ({
+    onSelect,
+    currentPosition,
+  }: {
+    onSelect: (point: Point) => void
+    currentPosition: Point | null
+  }) => (
     <>
+      <output aria-label="지도 현재 위치">{JSON.stringify(currentPosition)}</output>
       <button onClick={() => onSelect({ latitude: 37.5, longitude: 127 })}>지도 출발점</button>
       <button onClick={() => onSelect({ latitude: 37.6, longitude: 127.1 })}>지도 도착점</button>
     </>
@@ -23,6 +31,52 @@ vi.mock('./SafetyMap', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   robot.api.segments.mockResolvedValue([])
+  robot.getCurrentPosition.mockReset()
+  vi.stubGlobal(
+    'navigator',
+    Object.create(navigator, {
+      geolocation: { value: { getCurrentPosition: robot.getCurrentPosition } },
+    }),
+  )
+})
+afterEach(() => vi.unstubAllGlobals())
+it('현재 위치를 조회해 지도에 전달한다', async () => {
+  robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
+    success({ coords: { latitude: 35.123, longitude: 126.456 } } as GeolocationPosition)
+  })
+  render(<MapPage />)
+  expect(await screen.findByText('현재 위치를 기준으로 지도를 표시합니다.')).toBeTruthy()
+  expect(screen.getByLabelText('지도 현재 위치').textContent).toBe(
+    JSON.stringify({ latitude: 35.123, longitude: 126.456 }),
+  )
+  expect(robot.getCurrentPosition).toHaveBeenCalledWith(
+    expect.any(Function),
+    expect.any(Function),
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
+  )
+})
+it('위치 권한을 거부하면 안내하고 지도 선택 기능은 유지한다', async () => {
+  robot.getCurrentPosition.mockImplementation(
+    (_: PositionCallback, failure: PositionErrorCallback) => {
+      failure({ code: 1 } as GeolocationPositionError)
+    },
+  )
+  render(<MapPage />)
+  expect(await screen.findByText(/위치 권한이 거부되었습니다/)).toBeTruthy()
+  expect(screen.getByLabelText('지도 현재 위치').textContent).toBe('null')
+  await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
+  expect(screen.getByText('37.50000, 127.00000')).toBeTruthy()
+})
+it('위치 조회가 지연되면 실패 안내를 표시한다', async () => {
+  robot.getCurrentPosition.mockImplementation(
+    (_: PositionCallback, failure: PositionErrorCallback) => {
+      failure({ code: 3 } as GeolocationPositionError)
+    },
+  )
+  render(<MapPage />)
+  expect(
+    await screen.findByText('현재 위치를 확인하지 못했습니다. 기본 위치로 표시합니다.'),
+  ).toBeTruthy()
 })
 it('출발과 도착을 선택한 후 서버의 안전 경로를 요청한다', async () => {
   robot.api.searchPath.mockResolvedValue({

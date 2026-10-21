@@ -11,6 +11,7 @@ export interface Bounds {
   neLng: number
 }
 interface Props {
+  currentPosition: Point | null
   position: Point | null
   start: Point | null
   end: Point | null
@@ -29,7 +30,7 @@ export default function SafetyMap(props: Props) {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
-  const centered = useRef(false)
+  const centered = useRef<'current' | 'robot' | null>(null)
   useEffect(() => {
     callbacks.current = { onSelect: props.onSelect, onBounds: props.onBounds }
   }, [props.onSelect, props.onBounds])
@@ -78,7 +79,7 @@ export default function SafetyMap(props: Props) {
     return () => {
       active = false
       cleanup()
-      centered.current = false
+      centered.current = null
     }
   }, [revision])
   useEffect(() => {
@@ -136,16 +137,14 @@ export default function SafetyMap(props: Props) {
     props.reports.forEach((report) => marker(report, `신고 #${report.id}`, '#9d4938'))
     if (props.position) {
       marker(props.position, '로보독', '#13765b')
-      if (!centered.current) {
-        map.current.setCenter(latLng(props.position))
-        centered.current = true
-      }
     }
+    if (props.currentPosition) marker(props.currentPosition, '현재 위치', '#234cba')
     if (props.start) marker(props.start, '출발', '#234cba')
     if (props.end) marker(props.end, '도착', '#7136a3')
     return () => overlays.forEach((overlay) => overlay.setMap(null))
   }, [
     ready,
+    props.currentPosition,
     props.position,
     props.start,
     props.end,
@@ -154,6 +153,13 @@ export default function SafetyMap(props: Props) {
     props.records,
     props.route,
   ])
+  useEffect(() => {
+    if (!ready || !map.current || props.route || centered.current === 'current') return
+    const position = props.currentPosition ?? props.position
+    if (!position || (!props.currentPosition && centered.current === 'robot')) return
+    map.current.setCenter(new window.kakao.maps.LatLng(position.latitude, position.longitude))
+    centered.current = props.currentPosition ? 'current' : 'robot'
+  }, [ready, props.currentPosition, props.position, props.route])
   useEffect(() => {
     if (!ready || !map.current || !props.route?.path.length) return
     const bounds = new window.kakao.maps.LatLngBounds()
