@@ -127,7 +127,7 @@ select {
   border-right: 1px solid #e3eae5;
   position: fixed;
   inset: 0 auto 0 0;
-  z-index: 20;
+  z-index: 4;
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
@@ -200,6 +200,8 @@ select {
   margin-left: 232px;
   flex: 1;
   min-width: 0;
+  position: relative;
+  z-index: 0;
 }
 .topbar {
   height: 76px;
@@ -253,7 +255,7 @@ select {
   gap: 7px;
   align-items: center;
   background: white;
-  z-index: 30;
+  z-index: 5;
 }
 .page-title {
   margin: 22px 0 26px;
