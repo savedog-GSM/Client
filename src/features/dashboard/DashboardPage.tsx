@@ -1,118 +1,107 @@
-import { Activity, Gauge, RotateCw, Navigation } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useRobot } from '../../app/RobotProvider'
-import {
-  Empty,
-  ErrorNotice,
-  isFresh,
-  number,
-  PageTitle,
-  RiskBadge,
-  time,
-} from '../../components/ui'
+import { ErrorNotice, isFresh, number, PageTitle, time } from '../../components/ui'
 import RobotControls from './RobotControls'
 import CameraPanel from './CameraPanel'
+import DashboardMap from './DashboardMap'
+import RecentAlerts from './RecentAlerts'
+import RiskTrend from './RiskTrend'
+import './dashboard.css'
+import { clockTime } from './clockTime'
 
 export default function DashboardPage() {
-  const { status, statusError, retry, history, alerts, now, stream } = useRobot()
+  const { status, statusError, retry, now, stream } = useRobot()
   const sensorFresh = stream === 'connected' && isFresh(status.lastSeenAt, now, 3)
   const gpsFresh =
     stream === 'connected' &&
     status.latitude !== null &&
     status.longitude !== null &&
     isFresh(status.lastLocationAt, now, 5)
+  const risk = sensorFresh ? status.risk : null
+  const summary = !risk
+    ? '센서 수신 대기'
+    : risk.level === 'DANGER'
+      ? '주변 확인이 필요해요'
+      : risk.level === 'CAUTION'
+        ? '주의가 필요한 상태'
+        : '안전한 상태예요'
   const cards = [
     {
-      title: '전방 거리',
-      value: number(sensorFresh ? status.sensor?.distance : null, ' cm'),
-      icon: Gauge,
+      title: '전방 장애물 거리',
+      tag: 'ToF',
+      value: sensorFresh ? status.sensor?.distance : null,
+      unit: 'cm',
+      description: '전방 거리 측정값',
     },
     {
       title: '좌우 기울기',
-      value: number(sensorFresh ? status.sensor?.roll : null, '°'),
-      icon: RotateCw,
+      tag: 'Roll',
+      value: sensorFresh ? status.sensor?.roll : null,
+      unit: '°',
+      description: '좌우 자세 측정값',
     },
     {
       title: '앞뒤 기울기',
-      value: number(sensorFresh ? status.sensor?.pitch : null, '°'),
-      icon: Activity,
+      tag: 'Pitch',
+      value: sensorFresh ? status.sensor?.pitch : null,
+      unit: '°',
+      description: '앞뒤 자세 측정값',
     },
-    { title: '이동 속도', value: number(gpsFresh ? status.speed : null, ' m/s'), icon: Navigation },
   ]
   return (
-    <>
+    <div className="dashboard-page">
       <PageTitle
-        title="대시보드"
-        description="로보독의 현재 상태와 주변 안전 정보를 확인하세요."
-        action={<RiskBadge risk={sensorFresh ? status.risk : null} />}
+        title="실시간 대시보드"
+        description="지켜멍과 함께하는 이동, 한눈에 확인하세요."
+        action={
+          <div className="dashboard-refresh">
+            <span>최근 업데이트 {clockTime(status.lastSeenAt)}</span>
+            <button onClick={retry}>
+              <img src="/figma/refresh.svg" alt="" />
+              새로고침
+            </button>
+          </div>
+        }
       />
       <ErrorNotice message={statusError} retry={retry} />
-      <div className="metric-grid">
-        {cards.map(({ title, value, icon: Icon }) => (
-          <section className="metric" key={title}>
-            <div>
-              <span>{title}</span>
-              <Icon size={19} />
+      <div className="dashboard-metrics">
+        <section
+          className={`dashboard-metric summary-metric ${risk?.level.toLowerCase() ?? 'unknown'}`}
+        >
+          <div className="metric-title">
+            <span className="summary-dot" />
+            종합 상태
+          </div>
+          <strong>{summary}</strong>
+          <p>
+            {risk?.reason ??
+              (risk ? '현재 센서 기준 · 특이사항 없음' : '센서가 연결되면 상태를 표시합니다.')}
+          </p>
+          <img className="summary-shield" src="/figma/shield.svg" alt="" />
+        </section>
+        {cards.map((card) => (
+          <section className="dashboard-metric" key={card.tag}>
+            <div className="metric-title">
+              {card.title}
+              <span className="sensor-tag">{card.tag}</span>
             </div>
-            <strong>{value}</strong>
-            <p>실시간 센서 데이터</p>
+            <div className="metric-value">
+              <strong>{card.value == null ? '값 없음' : number(card.value)}</strong>
+              {card.value != null && <small>{card.unit}</small>}
+            </div>
+            <p>{card.description}</p>
           </section>
         ))}
       </div>
-      <div className="dashboard-grid">
-        <div className="stack">
-          <section className="panel">
-            <div className="section-heading">
-              <div>
-                <h2>실시간 위험도</h2>
-                <p>서버가 판단한 최근 60개 기록 · 1–5점</p>
-              </div>
-              <RiskBadge risk={sensorFresh ? status.risk : null} />
-            </div>
-            {history.length ? (
-              <div className="chart">
-                <svg viewBox="0 0 720 220" role="img" aria-label="실시간 위험도 추이">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <g key={value}>
-                      <line
-                        x1="30"
-                        x2="705"
-                        y1={200 - (value - 1) * 45}
-                        y2={200 - (value - 1) * 45}
-                        stroke="#e3e9e7"
-                      />
-                      <text x="8" y={205 - (value - 1) * 45} fontSize="12" fill="#667771">
-                        {value}
-                      </text>
-                    </g>
-                  ))}
-                  <circle
-                    cx={history.length === 1 ? 30 : 705}
-                    cy={200 - (history[history.length - 1].risk.score - 1) * 45}
-                    r="4"
-                    fill="#13765b"
-                  />
-                  <polyline
-                    points={history
-                      .map(
-                        (item, i) =>
-                          `${30 + (i / Math.max(history.length - 1, 1)) * 675},${200 - (item.risk.score - 1) * 45}`,
-                      )
-                      .join(' ')}
-                    fill="none"
-                    stroke="#13765b"
-                    strokeWidth="3"
-                  />
-                </svg>
-              </div>
-            ) : (
-              <Empty>센서 데이터를 기다리고 있습니다.</Empty>
-            )}
-            <p className="muted">
-              {sensorFresh
-                ? (status.risk?.reason ?? '서버에서 안전 상태로 판단했습니다.')
-                : '센서가 3초 이상 갱신되지 않았거나 실시간 연결이 끊겼습니다.'}
-            </p>
-          </section>
+      <div className="dashboard-overview">
+        <DashboardMap />
+        <RecentAlerts />
+      </div>
+      <RiskTrend currentRisk={risk} />
+      <details className="dashboard-tools">
+        <summary>로보독 제어 및 연결 정보</summary>
+        <div className="dashboard-tools-grid">
+          <RobotControls />
           <section className="panel">
             <h2>연결 및 위치</h2>
             <dl className="details">
@@ -144,31 +133,18 @@ export default function DashboardPage() {
                     : `${status.latitude.toFixed(6)}, ${status.longitude.toFixed(6)}`}
                 </dd>
               </div>
+              <div>
+                <dt>이동 속도</dt>
+                <dd>{number(gpsFresh ? status.speed : null, ' m/s')}</dd>
+              </div>
             </dl>
           </section>
           <CameraPanel />
         </div>
-        <div className="stack">
-          <RobotControls />
-          <section className="panel">
-            <div className="section-heading">
-              <h2>최근 위험 알림</h2>
-              <span className="count">{alerts.length}</span>
-            </div>
-            {alerts.length ? (
-              alerts.slice(0, 4).map((alert) => (
-                <div className="alert-row" key={alert.telemetry.id}>
-                  <RiskBadge risk={alert.telemetry.risk} />
-                  <p>{alert.message}</p>
-                  <small>{time(alert.telemetry.recordedAt)}</small>
-                </div>
-              ))
-            ) : (
-              <Empty>수신한 위험 알림이 없습니다.</Empty>
-            )}
-          </section>
-        </div>
-      </div>
-    </>
+      </details>
+      <footer className="dashboard-footer">
+        지켜멍 · 함께 걷는 안심 <Link to="/map">경로 확인하기 →</Link>
+      </footer>
+    </div>
   )
 }
