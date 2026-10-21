@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Activity, Bell, Dog, FileText, History, Map, Settings, Smartphone } from 'lucide-react'
+import { Activity, Bell, FileText, History, Map, Settings, Smartphone } from 'lucide-react'
 import {
   BrowserRouter,
   Link,
@@ -42,10 +42,8 @@ function ControlPages() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link to="/" className="brand">
-          <span>
-            <Dog size={26} />
-          </span>
+        <Link to="/" className="brand" aria-label="지켜멍 대시보드">
+          <img src="/savedog-logo.png" alt="" width={52} height={52} />
           <div>
             지켜멍<small>SaveDog</small>
           </div>
@@ -124,7 +122,12 @@ function Application() {
       {phone ? (
         <>
           <header className="phone-header">
-            <Link to="/">← 관제 센터</Link>
+            <Link to="/" className="phone-brand">
+              <img src="/savedog-logo.png" alt="" width={38} height={38} />
+              <span>
+                지켜멍 <small>관제 센터로 이동</small>
+              </span>
+            </Link>
           </header>
           <main id="main">
             <LocationPage settings={settings} />
