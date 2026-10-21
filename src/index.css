@@ -127,6 +127,9 @@ select {
   border-right: 1px solid #e3eae5;
   position: fixed;
   inset: 0 auto 0 0;
+  z-index: 20;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
 }
@@ -250,7 +253,7 @@ select {
   gap: 7px;
   align-items: center;
   background: white;
-  z-index: 5;
+  z-index: 30;
 }
 .page-title {
   margin: 22px 0 26px;
