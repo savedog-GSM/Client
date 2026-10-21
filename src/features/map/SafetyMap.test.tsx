@@ -87,3 +87,12 @@ it('어떤 위치도 없으면 지도 기본 중심을 유지한다', async () =
   await waitFor(() => expect(props.onBounds).toHaveBeenCalled())
   expect(setCenter).not.toHaveBeenCalled()
 })
+it('검색한 위치로 이동한 뒤 늦게 받은 현재 위치가 중심을 바꾸지 않는다', async () => {
+  const focus = { latitude: 35.16, longitude: 126.9 }
+  const view = render(<SafetyMap {...props} focus={focus} />)
+  await waitFor(() => expect(setCenter).toHaveBeenCalledWith(new LatLng(35.16, 126.9)))
+  view.rerender(
+    <SafetyMap {...props} focus={focus} currentPosition={{ latitude: 37, longitude: 127 }} />,
+  )
+  expect(setCenter).toHaveBeenCalledTimes(1)
+})

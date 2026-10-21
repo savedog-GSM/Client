@@ -5,6 +5,9 @@ import type { Point } from '../../api/types'
 import { ApiError } from '../../api/client'
 import { status } from '../../test/fixtures'
 import MapPage from './MapPage'
+import { searchLocations } from './searchLocations'
+
+vi.mock('./searchLocations', () => ({ searchLocations: vi.fn() }))
 
 const robot = vi.hoisted(() => ({
   api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn() },
@@ -32,6 +35,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   robot.api.segments.mockResolvedValue([])
   robot.getCurrentPosition.mockReset()
+  vi.mocked(searchLocations).mockReset()
   vi.stubGlobal(
     'navigator',
     Object.create(navigator, {
@@ -40,6 +44,49 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
+it('현재 위치를 출발지로, 검색한 주소를 도착지로 설정한다', async () => {
+  robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
+    success({ coords: { latitude: 35.123, longitude: 126.456 } } as GeolocationPosition)
+  })
+  vi.mocked(searchLocations).mockResolvedValue([
+    { name: '광주역', address: '광주 북구 무등로 235', latitude: 35.165, longitude: 126.909 },
+  ])
+  robot.api.searchPath.mockResolvedValue({
+    mode: 'SAFEST',
+    path: [],
+    distanceMeters: 100,
+    averageRiskScore: 1,
+    maxRiskLevel: 'SAFE',
+  })
+  render(<MapPage />)
+  await userEvent.click(screen.getByRole('button', { name: '현재 위치에서 출발' }))
+  await userEvent.type(screen.getByLabelText('도착지 주소'), '광주역')
+  await userEvent.click(screen.getByRole('button', { name: '도착지 주소 검색' }))
+  await userEvent.click(await screen.findByRole('button', { name: /광주역 광주 북구/ }))
+  await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
+  expect(robot.api.searchPath).toHaveBeenCalledWith(
+    { latitude: 35.123, longitude: 126.456 },
+    { latitude: 35.165, longitude: 126.909 },
+    'SAFEST',
+  )
+  await userEvent.type(screen.getByLabelText('도착지 주소'), ' 수정')
+  expect((screen.getByRole('button', { name: '경로 찾기' }) as HTMLButtonElement).disabled).toBe(
+    true,
+  )
+})
+it('검색한 출발지를 선택하면 다음 지도 선택은 도착지가 된다', async () => {
+  vi.mocked(searchLocations).mockResolvedValue([
+    { name: '출발 주소', address: '광주 광산구', latitude: 35.1, longitude: 126.8 },
+  ])
+  render(<MapPage />)
+  await userEvent.type(screen.getByLabelText('출발지 주소'), '광주 광산구')
+  await userEvent.click(screen.getByRole('button', { name: '출발지 주소 검색' }))
+  await userEvent.click(await screen.findByRole('button', { name: '출발 주소 광주 광산구' }))
+  await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
+  expect((screen.getByRole('button', { name: '경로 찾기' }) as HTMLButtonElement).disabled).toBe(
+    false,
+  )
+})
 it('현재 위치를 조회해 지도에 전달한다', async () => {
   robot.getCurrentPosition.mockImplementation((success: PositionCallback) => {
     success({ coords: { latitude: 35.123, longitude: 126.456 } } as GeolocationPosition)
