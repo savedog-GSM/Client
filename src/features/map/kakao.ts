@@ -19,7 +19,7 @@ export function loadKakaoMaps(): Promise<typeof kakao.maps> {
         ),
       )
     }, 15000)
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false`
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services`
     script.onload = () => {
       if (!window.kakao?.maps) {
         clearTimeout(timer)
