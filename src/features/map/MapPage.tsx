@@ -6,14 +6,17 @@ import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
 import SafetyMap, { type Bounds } from './SafetyMap'
 import AddressSearch from './AddressSearch'
+import { usePointAddress, type AddressPoint } from './usePointAddress'
 
 export default function MapPage() {
   const { api, status, history, reports } = useRobot()
   const [segments, setSegments] = useState<Segment[]>([])
   const [records, setRecords] = useState<SafetyRecord[]>([])
   const [bounds, setBounds] = useState<Bounds | null>(null)
-  const [start, setStart] = useState<Point | null>(null)
-  const [end, setEnd] = useState<Point | null>(null)
+  const [start, setStart] = useState<AddressPoint | null>(null)
+  const [end, setEnd] = useState<AddressPoint | null>(null)
+  const startLabel = usePointAddress(start)
+  const endLabel = usePointAddress(end)
   const [startAddress, setStartAddress] = useState('')
   const [endAddress, setEndAddress] = useState('')
   const [focus, setFocus] = useState<Point | null>(null)
@@ -138,11 +141,11 @@ export default function MapPage() {
     invalidateRoute()
     if (selecting === 'start') {
       setStart(point)
-      setStartAddress(`${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`)
+      setStartAddress('지도에서 선택한 위치')
       setSelecting('end')
     } else {
       setEnd(point)
-      setEndAddress(`${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`)
+      setEndAddress('지도에서 선택한 위치')
     }
   }
   async function search() {
@@ -152,7 +155,11 @@ export default function MapPage() {
     setError('')
     setRoute(null)
     try {
-      const result = await api.searchPath(start, end, mode)
+      const result = await api.searchPath(
+        { latitude: start.latitude, longitude: start.longitude },
+        { latitude: end.latitude, longitude: end.longitude },
+        mode,
+      )
       if (currentSearch === searchRevision.current) setRoute(result)
     } catch (error) {
       if (currentSearch === searchRevision.current) setError(errorMessage(error))
@@ -225,7 +232,7 @@ export default function MapPage() {
           <p>수집된 길 안에서 경로를 탐색합니다.</p>
           <AddressSearch
             label="출발지 주소"
-            value={startAddress}
+            value={start ? startLabel : startAddress}
             onChange={(value) => {
               invalidateRoute()
               setStartAddress(value)
@@ -233,7 +240,11 @@ export default function MapPage() {
             }}
             onSelect={(location) => {
               invalidateRoute()
-              setStart({ latitude: location.latitude, longitude: location.longitude })
+              setStart({
+                latitude: location.latitude,
+                longitude: location.longitude,
+                address: location.address,
+              })
               setStartAddress(location.name)
               setFocus(location)
               setSelecting('end')
@@ -254,7 +265,7 @@ export default function MapPage() {
           </button>
           <AddressSearch
             label="도착지 주소"
-            value={endAddress}
+            value={end ? endLabel : endAddress}
             onChange={(value) => {
               invalidateRoute()
               setEndAddress(value)
@@ -262,7 +273,11 @@ export default function MapPage() {
             }}
             onSelect={(location) => {
               invalidateRoute()
-              setEnd({ latitude: location.latitude, longitude: location.longitude })
+              setEnd({
+                latitude: location.latitude,
+                longitude: location.longitude,
+                address: location.address,
+              })
               setEndAddress(location.name)
               setFocus(location)
             }}
@@ -270,19 +285,11 @@ export default function MapPage() {
           <div className="route-points">
             <button aria-pressed={selecting === 'start'} onClick={() => setSelecting('start')}>
               <strong>출발지 선택</strong>
-              <small>
-                {start
-                  ? `${start.latitude.toFixed(5)}, ${start.longitude.toFixed(5)}`
-                  : '지도를 눌러 선택'}
-              </small>
+              <small>{start ? startLabel : '지도를 눌러 선택'}</small>
             </button>
             <button aria-pressed={selecting === 'end'} onClick={() => setSelecting('end')}>
               <strong>도착지 선택</strong>
-              <small>
-                {end
-                  ? `${end.latitude.toFixed(5)}, ${end.longitude.toFixed(5)}`
-                  : '지도를 눌러 선택'}
-              </small>
+              <small>{end ? endLabel : '지도를 눌러 선택'}</small>
             </button>
           </div>
           <button
