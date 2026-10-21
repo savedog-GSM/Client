@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { errorMessage } from '../../api/client'
 import type { PathMode, PathResult, Point, SafetyRecord, Segment } from '../../api/types'
+import RouteModeSelect from './RouteModeSelect'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
 import SafetyMap, { type Bounds } from './SafetyMap'
@@ -260,19 +261,13 @@ export default function MapPage() {
           >
             마지막 로보독 위치에서 출발
           </button>
-          <label>
-            탐색 방식
-            <select
-              value={mode}
-              onChange={(e) => {
-                invalidateRoute()
-                setMode(e.target.value as PathMode)
-              }}
-            >
-              <option value="SAFEST">안전 우선</option>
-              <option value="SHORTEST">최단 거리</option>
-            </select>
-          </label>
+          <RouteModeSelect
+            value={mode}
+            onChange={(value) => {
+              invalidateRoute()
+              setMode(value)
+            }}
+          />
           <p className="muted">
             안전 우선은 위험 구간을 피합니다. 최단 거리는 위험도를 고려하지 않습니다.
           </p>

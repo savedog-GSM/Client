@@ -147,7 +147,8 @@ it('출발과 도착을 선택한 후 서버의 안전 경로를 요청한다', 
     ),
   )
   expect(await screen.findByText('123.4 m')).toBeTruthy()
-  await userEvent.selectOptions(screen.getByLabelText('탐색 방식'), 'SHORTEST')
+  await userEvent.click(screen.getByRole('combobox', { name: '탐색 방식' }))
+  await userEvent.click(screen.getByRole('option', { name: /최단 거리/ }))
   expect(screen.queryByText('123.4 m')).toBeNull()
 })
 it('수집된 길이 없어 경로를 못 찾으면 서버의 안내를 표시한다', async () => {
