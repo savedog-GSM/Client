@@ -213,6 +213,9 @@ select {
   border-color: #355078;
   color: #e2edff;
 }
+.sidebar-bottom button:hover:not(:disabled) {
+  background: #294976;
+}
 .workspace {
   margin-left: 228px;
   flex: 1;
@@ -276,6 +279,11 @@ select {
   border-color: #355078;
   color: #e2edff;
   z-index: 5;
+}
+@media (min-width: 901px) {
+  .settings-button:not(.phone-settings):hover {
+    background: #294976;
+  }
 }
 .page-title {
   margin: 0 0 24px;
