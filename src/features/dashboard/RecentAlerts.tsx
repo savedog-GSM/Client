@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useRobot } from '../../app/RobotProvider'
-import { Empty, riskNames, time } from '../../components/ui'
+import { Empty, riskNames } from '../../components/ui'
+import { clockTime } from './clockTime'
 
 export default function RecentAlerts() {
   const { alerts } = useRobot()
@@ -28,7 +29,9 @@ export default function RecentAlerts() {
                   <strong>{riskNames[alert.telemetry.risk.level]} 알림</strong>
                   <p>{alert.message}</p>
                   <div className="alert-meta">
-                    <time>{time(alert.telemetry.recordedAt)}</time>
+                    <time dateTime={alert.telemetry.recordedAt}>
+                      {clockTime(alert.telemetry.recordedAt)}
+                    </time>
                     <span className={alert.telemetry.risk.level.toLowerCase()}>
                       {riskNames[alert.telemetry.risk.level]} 기록
                     </span>

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useRobot } from '../../app/RobotProvider'
-import { isFresh, number, time } from '../../components/ui'
+import { isFresh, number } from '../../components/ui'
+import { clockTime } from './clockTime'
 import type { Segment } from '../../api/types'
 import SafetyMap from '../map/SafetyMap'
 
@@ -82,7 +83,7 @@ export default function DashboardMap() {
           </div>
           <div>
             <dt>GPS 수신</dt>
-            <dd>{time(status.lastLocationAt)}</dd>
+            <dd>{clockTime(status.lastLocationAt)}</dd>
           </div>
         </dl>
         <div className="dashboard-map-actions">

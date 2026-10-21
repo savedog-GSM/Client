@@ -7,6 +7,7 @@ import DashboardMap from './DashboardMap'
 import RecentAlerts from './RecentAlerts'
 import RiskTrend from './RiskTrend'
 import './dashboard.css'
+import { clockTime } from './clockTime'
 
 export default function DashboardPage() {
   const { status, statusError, retry, now, stream } = useRobot()
@@ -54,7 +55,7 @@ export default function DashboardPage() {
         description="지켜멍과 함께하는 이동, 한눈에 확인하세요."
         action={
           <div className="dashboard-refresh">
-            <span>최근 업데이트 {time(status.lastSeenAt)}</span>
+            <span>최근 업데이트 {clockTime(status.lastSeenAt)}</span>
             <button onClick={retry}>
               <img src="/figma/refresh.svg" alt="" />
               새로고침
