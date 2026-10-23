@@ -4,7 +4,8 @@ import type { PathMode, PathResult, Point, SafetyRecord, Segment } from '../../a
 import RouteModeSelect from './RouteModeSelect'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
-import SafetyMap, { type Bounds } from './SafetyMap'
+import { type Bounds } from './SafetyMap'
+import ExpandableMap from './ExpandableMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
 import { demoPosition } from '../demo/session'
@@ -193,7 +194,7 @@ export default function MapPage() {
             <span className="danger">● 위험</span>
             <span>● 보라색: 탐색 경로</span>
           </div>
-          <SafetyMap
+          <ExpandableMap
             focus={focus}
             currentPosition={currentPosition}
             positionAccuracy={positionAccuracy}

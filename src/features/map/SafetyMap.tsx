@@ -10,7 +10,13 @@ export interface Bounds {
   neLat: number
   neLng: number
 }
-interface Props {
+export interface MapView {
+  center: Point
+  level: number
+}
+export interface SafetyMapProps {
+  initialView?: MapView
+  onViewChange?: (view: MapView) => void
   positionAccuracy?: number | null
   focus?: Point | null
   currentPosition: Point | null
@@ -25,17 +31,26 @@ interface Props {
   onBounds: (bounds: Bounds) => void
 }
 const colors = { SAFE: '#19815f', CAUTION: '#d6a422', DANGER: '#d64e4e' }
-export default function SafetyMap(props: Props) {
+export default function SafetyMap(props: SafetyMapProps) {
+  const initialView = useRef(props.initialView)
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<kakao.maps.Map | null>(null)
-  const callbacks = useRef({ onSelect: props.onSelect, onBounds: props.onBounds })
+  const callbacks = useRef({
+    onSelect: props.onSelect,
+    onBounds: props.onBounds,
+    onViewChange: props.onViewChange,
+  })
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
   const centered = useRef<'current' | 'robot' | null>(null)
   useEffect(() => {
-    callbacks.current = { onSelect: props.onSelect, onBounds: props.onBounds }
-  }, [props.onSelect, props.onBounds])
+    callbacks.current = {
+      onSelect: props.onSelect,
+      onBounds: props.onBounds,
+      onViewChange: props.onViewChange,
+    }
+  }, [props.onSelect, props.onBounds, props.onViewChange])
   useEffect(() => {
     let active = true
     let cleanup = () => {}
@@ -43,10 +58,12 @@ export default function SafetyMap(props: Props) {
     loadKakaoMaps()
       .then((maps) => {
         if (!active || !container.current) return
+        const center = initialView.current?.center
         const instance = new maps.Map(container.current, {
-          center: new maps.LatLng(37.5665, 126.978),
-          level: 4,
+          center: new maps.LatLng(center?.latitude ?? 37.5665, center?.longitude ?? 126.978),
+          level: initialView.current?.level ?? 4,
         })
+        if (initialView.current) centered.current = 'current'
         map.current = instance
         const click = (event: kakao.maps.event.MouseEvent) =>
           callbacks.current.onSelect({
@@ -54,6 +71,13 @@ export default function SafetyMap(props: Props) {
             longitude: event.latLng.getLng(),
           })
         const bounds = () => {
+          if (callbacks.current.onViewChange) {
+            const center = instance.getCenter()
+            callbacks.current.onViewChange({
+              center: { latitude: center.getLat(), longitude: center.getLng() },
+              level: instance.getLevel(),
+            })
+          }
           const box = instance.getBounds()
           callbacks.current.onBounds({
             swLat: box.getSouthWest().getLat(),
