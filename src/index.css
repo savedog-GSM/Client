@@ -479,29 +479,6 @@ select {
 .stop-button:hover:not(:disabled) {
   background: #ffe4dc;
 }
-.alarm {
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff1e9;
-  border: 1px solid #edc7b5;
-  border-left: 4px solid #df905b;
-  border-radius: 8px;
-  padding: 17px 20px;
-  color: #9b502b;
-  margin-top: 18px;
-  font-size: 13px;
-}
-.alarm.urgent {
-  background: #fbe5e3;
-  border-color: #d04338;
-  border-left-width: 7px;
-  color: #a12e26;
-}
-.alarm p {
-  margin-bottom: 0;
-}
 .alert-row {
   padding: 19px 0;
   border-bottom: 1px solid #edf2ee;
@@ -1096,10 +1073,6 @@ button[aria-pressed='true'] {
   }
   .map-container {
     height: 430px;
-  }
-  .alarm {
-    flex-wrap: wrap;
-    padding: 14px;
   }
   .error-notice {
     flex-wrap: wrap;
