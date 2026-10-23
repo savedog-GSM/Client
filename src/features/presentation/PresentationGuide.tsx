@@ -51,9 +51,12 @@ export default function PresentationGuide() {
   const query = new URLSearchParams(location.search)
   const active = query.get('present') === '1'
   const demo = query.get('demo') === '1'
-  const requested = Number(query.get('step'))
-  const index =
-    Number.isInteger(requested) && requested >= 0 && requested < steps.length ? requested : 0
+  const index = Math.max(
+    0,
+    steps.findIndex(
+      (item) => item.path === location.pathname && (item.hash ?? '') === location.hash,
+    ),
+  )
   const step = steps[index]
   function go(next: number, mode = demo) {
     const target = steps[next]

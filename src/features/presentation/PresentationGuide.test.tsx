@@ -50,3 +50,8 @@ it('단계를 벗어나는 주소를 열어도 첫 단계부터 안내한다', (
   open('/?present=1&step=999')
   expect(screen.getByText('1 / 7')).toBeTruthy()
 })
+
+it('다른 메뉴로 이동한 경우 실제 화면에 맞춰 발표 단계를 표시한다', () => {
+  open('/reports?present=1&step=0')
+  expect(screen.getByText('6 / 7')).toBeTruthy()
+})
