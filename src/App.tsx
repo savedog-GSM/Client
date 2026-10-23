@@ -9,12 +9,12 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom'
-import PresentationGuide from './features/presentation/PresentationGuide'
 import type { ConnectionSettings } from './api/types'
 import ConnectionForm from './app/ConnectionForm'
 import { RobotProvider, useRobot } from './app/RobotProvider'
 import AlertBanner from './features/alerts/AlertBanner'
 import AlertsPage from './features/alerts/AlertsPage'
+import PresentationGuide from './features/presentation/PresentationGuide'
 import DashboardPage from './features/dashboard/DashboardPage'
 import HistoryPage from './features/history/HistoryPage'
 import LocationPage from './features/location/LocationPage'
