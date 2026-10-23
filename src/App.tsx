@@ -42,9 +42,7 @@ function ControlPages() {
       <aside className="sidebar">
         <Link to="/" className="brand" aria-label="지켜멍 대시보드">
           <img src="/savedog-icon.png" alt="" width={52} height={52} />
-          <div>
-            지켜멍<small>SaveDog</small>
-          </div>
+          <div>지켜멍</div>
         </Link>
         <nav aria-label="주 메뉴">
           {navigation.map(({ path, label, icon: Icon, image }) => (
