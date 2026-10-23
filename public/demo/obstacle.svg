@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#e9edf3"/>
+  <path d="M310 0h340l220 540H90z" fill="#cad2de"/>
+  <path d="M480 0v540" stroke="white" stroke-width="8" stroke-dasharray="35 25"/>
+  <rect x="345" y="225" width="270" height="145" rx="12" fill="#ae7652"/>
+  <rect x="325" y="205" width="310" height="185" rx="16" fill="none" stroke="#e04444" stroke-width="5"/>
+  <rect x="26" y="24" width="365" height="62" rx="12" fill="#121e35"/>
+  <text x="48" y="65" fill="white" font-size="28" font-family="sans-serif">시연용 이미지 · 실제 촬영 아님</text>
+  <text x="330" y="445" fill="#a82727" font-size="28" font-family="sans-serif">전방 장애물 감지 예시</text>
+</svg>
