@@ -17,6 +17,24 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('시설 버튼을 누르면 선택한 시설 이름을 읽고 검색도 진행한다', async () => {
+  const speak = vi.fn()
+  vi.stubGlobal('speechSynthesis', { speak, cancel: vi.fn(), getVoices: () => [] })
+  vi.stubGlobal(
+    'SpeechSynthesisUtterance',
+    class {
+      constructor(public text: string) {}
+    },
+  )
+  render(<FacilitiesPage settings={settings} simulated />)
+  await userEvent.click(screen.getByRole('button', { name: '가장 가까운 화장실 경로 찾기' }))
+  expect(speak).toHaveBeenLastCalledWith(expect.objectContaining({ text: '화장실' }))
+  expect(await screen.findByRole('heading', { name: '시연용 화장실' })).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: '가장 가까운 편의점 경로 찾기' }))
+  expect(speak).toHaveBeenLastCalledWith(expect.objectContaining({ text: '편의점' }))
+  expect(await screen.findByRole('heading', { name: '시연용 편의점' })).toBeTruthy()
+})
+
 it('명시적으로 시설을 선택하기 전에는 위치 권한이나 API를 요청하지 않는다', () => {
   const fetch = vi.fn()
   vi.stubGlobal('fetch', fetch)

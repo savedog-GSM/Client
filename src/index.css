@@ -860,6 +860,14 @@ button[aria-pressed='true'] {
 .location-card .details {
   margin-bottom: 28px;
 }
+.location-send-button {
+  width: 100%;
+  max-width: 400px;
+  min-height: 72px;
+  padding: 20px 24px;
+  font-size: 22px;
+  font-weight: 700;
+}
 .location-indicator {
   display: inline-block;
   color: #a6b8a9;

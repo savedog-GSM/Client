@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import LocationPage from './LocationPage'
@@ -7,7 +7,18 @@ import { settings } from '../../test/fixtures'
 let receive: PositionCallback
 let fail: PositionErrorCallback
 const clearWatch = vi.fn()
+const speak = vi.fn()
+const cancelVoice = vi.fn()
 beforeEach(() => {
+  speak.mockClear()
+  cancelVoice.mockClear()
+  vi.stubGlobal('speechSynthesis', { speak, cancel: cancelVoice, getVoices: () => [] })
+  vi.stubGlobal(
+    'SpeechSynthesisUtterance',
+    class {
+      constructor(public text: string) {}
+    },
+  )
   vi.stubGlobal('isSecureContext', true)
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })))
   vi.stubGlobal('navigator', {
@@ -22,7 +33,10 @@ beforeEach(() => {
   })
   clearWatch.mockClear()
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 function location(accuracy: number, speed: number | null = null): GeolocationPosition {
   return {
     coords: {
@@ -40,7 +54,11 @@ function location(accuracy: number, speed: number | null = null): GeolocationPos
 it('명시적으로 시작한 뒤 정확한 위치만 전송하고 중지 시 구독을 해제한다', async () => {
   render(<LocationPage settings={settings} />)
   expect(navigator.geolocation.watchPosition).not.toHaveBeenCalled()
+  expect(speak).not.toHaveBeenCalled()
   await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
+  expect(speak).toHaveBeenCalledWith(
+    expect.objectContaining({ text: '위치 전송을 시작하겠습니다', lang: 'ko-KR' }),
+  )
   act(() => receive(location(40)))
   expect(fetch).not.toHaveBeenCalled()
   await act(async () => receive(location(12)))
@@ -54,6 +72,7 @@ it('명시적으로 시작한 뒤 정확한 위치만 전송하고 중지 시 �
   expect(new Headers(options.headers).get('X-Device-Token')).toBe('device-test')
   await userEvent.click(screen.getByRole('button', { name: '전송 중지' }))
   expect(clearWatch).toHaveBeenCalledWith(42)
+  expect(cancelVoice).toHaveBeenCalledOnce()
 })
 it('위치 권한 거부 시 전송을 종료하고 이유를 표시한다', async () => {
   render(<LocationPage settings={settings} />)
@@ -69,6 +88,7 @@ it('보안 연결이 아닌 화면에서는 위치를 요청하지 않는다', a
   render(<LocationPage settings={settings} />)
   await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
   expect(navigator.geolocation.watchPosition).not.toHaveBeenCalled()
+  expect(speak).not.toHaveBeenCalled()
   expect(screen.getByRole('alert').textContent).toContain('HTTPS')
 })
 it('전송 중 화면을 나가면 위치 추적을 정리한다', async () => {
@@ -76,4 +96,24 @@ it('전송 중 화면을 나가면 위치 추적을 정리한다', async () => {
   await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
   view.unmount()
   expect(clearWatch).toHaveBeenCalledWith(42)
+})
+
+it('음성 안내가 지원되지 않아도 위치 추적은 시작한다', async () => {
+  vi.stubGlobal('speechSynthesis', undefined)
+  render(<LocationPage settings={settings} />)
+  await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
+  expect(navigator.geolocation.watchPosition).toHaveBeenCalledOnce()
+  expect(screen.getByRole('button', { name: '전송 중지' })).toBeTruthy()
+  expect(screen.getByRole('status', { name: '음성 안내 상태' }).textContent).toContain(
+    '지원하지 않습니다',
+  )
+})
+
+it('시연 모드에서도 시작 문구를 읽고 실제 GPS는 요청하지 않는다', async () => {
+  render(<LocationPage settings={settings} simulated />)
+  await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
+  expect(speak).toHaveBeenCalledWith(
+    expect.objectContaining({ text: '위치 전송을 시작하겠습니다' }),
+  )
+  expect(navigator.geolocation.watchPosition).not.toHaveBeenCalled()
 })

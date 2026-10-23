@@ -3,6 +3,7 @@ import { createApi, errorMessage, type Api } from '../../api/client'
 import type { ConnectionSettings, LocationInput } from '../../api/types'
 import { ErrorNotice, number, PageTitle } from '../../components/ui'
 import { demoPosition } from '../demo/session'
+import { useVoiceGuide } from '../../components/useVoiceGuide'
 
 export default function LocationPage({
   settings,
@@ -14,6 +15,7 @@ export default function LocationPage({
   simulated?: boolean
 }) {
   const api = useMemo(() => apiOverride ?? createApi(settings), [settings, apiOverride])
+  const voice = useVoiceGuide()
   const [running, setRunning] = useState(false)
   const [location, setLocation] = useState<LocationInput | null>(null)
   const [sentAt, setSentAt] = useState('')
@@ -130,6 +132,7 @@ export default function LocationPage({
   function start() {
     setError('')
     if (simulated) {
+      voice.speak('위치 전송을 시작하겠습니다')
       setRunning(true)
       return
     }
@@ -147,6 +150,7 @@ export default function LocationPage({
       )
       return
     }
+    voice.speak('위치 전송을 시작하겠습니다')
     setRunning(true)
   }
   return (
@@ -183,9 +187,10 @@ export default function LocationPage({
           </div>
         </dl>
         <button
-          className={running ? 'stop-button' : 'primary'}
+          className={`location-send-button ${running ? 'stop-button' : 'primary'}`}
           onClick={() => {
             if (running) {
+              voice.stop()
               setRunning(false)
               setMessage('위치 전송을 중지했습니다.')
               setWakeMessage('화면 꺼짐 방지 꺼짐')
@@ -194,6 +199,11 @@ export default function LocationPage({
         >
           {running ? '전송 중지' : '위치 전송 시작'}
         </button>
+        {voice.error && (
+          <p className="muted" role="status" aria-label="음성 안내 상태">
+            {voice.error}
+          </p>
+        )}
         <p className="muted">{simulated ? '예시 GPS · 위치 오차 3m' : wakeMessage}</p>
       </section>
       <p className="muted">
