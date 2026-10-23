@@ -46,7 +46,7 @@ export function createDemoSession() {
       submittedAt: null,
     }
   }
-  const seeded = Array.from({ length: 60 }, (_, index) => ({
+  const seeded: Telemetry[] = Array.from({ length: 60 }, (_, index) => ({
     ...sample(Date.now() - (59 - index) * 1000, index > 25 && index < 35 ? 'CAUTION' : 'SAFE'),
     latitude: demoPosition.latitude - (59 - index) * 0.000005,
     longitude: demoPosition.longitude - (59 - index) * 0.000002,
