@@ -15,6 +15,7 @@ interface Toast {
 export default function AlertToast() {
   const { alerts, status } = useRobot()
   const [toast, setToast] = useState<Toast | null>(null)
+  const [leaving, setLeaving] = useState(false)
   const [sound, setSound] = useState(false)
   const audio = useRef<AudioContext | null>(null)
   const lastPlayed = useRef<string | null>(null)
@@ -27,17 +28,18 @@ export default function AlertToast() {
     const changed = previousLevel.current !== level
     previousLevel.current = level
     if (level === 'SAFE') {
-      setToast(null)
+      setLeaving(true)
       return
     }
     if (alert) {
       if (level && level !== alert.telemetry.risk.level) {
-        setToast(null)
+        setLeaving(true)
         return
       }
       if (lastAlertId.current === alert.telemetry.id) return
       lastAlertId.current = alert.telemetry.id
       if (Date.now() - Date.parse(alert.telemetry.recordedAt) >= 3000) return
+      setLeaving(false)
       setToast({
         key: `alert-${alert.telemetry.id}`,
         title: alertTitle(alert),
@@ -45,6 +47,7 @@ export default function AlertToast() {
         level: alert.telemetry.risk.level,
       })
     } else if (level === 'DANGER' && changed) {
+      setLeaving(false)
       setToast({
         key: `status-${Date.now()}`,
         title: '현재 위험 상태',
@@ -55,11 +58,22 @@ export default function AlertToast() {
   }, [alert, level, reason])
   useEffect(() => {
     if (!toast) return
-    const timer = window.setTimeout(() => setToast(null), 3000)
+    const timer = window.setTimeout(
+      () => (leaving ? setToast(null) : setLeaving(true)),
+      leaving ? 280 : 2720,
+    )
     return () => window.clearTimeout(timer)
-  }, [toast])
+  }, [toast, leaving])
   useEffect(() => {
-    if (!sound || !toast || lastPlayed.current === toast.key || !audio.current) return
+    if (
+      !sound ||
+      !toast ||
+      leaving ||
+      level === 'SAFE' ||
+      lastPlayed.current === toast.key ||
+      !audio.current
+    )
+      return
     lastPlayed.current = toast.key
     const context = audio.current
     const oscillator = context.createOscillator()
@@ -71,7 +85,7 @@ export default function AlertToast() {
     gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6)
     oscillator.start()
     oscillator.stop(context.currentTime + 0.6)
-  }, [toast, sound])
+  }, [toast, sound, leaving, level])
   useEffect(
     () => () => {
       void audio.current?.close()
@@ -91,7 +105,7 @@ export default function AlertToast() {
       setSound(false)
     }
   }
-  const visible = toast && level !== 'SAFE' && (!level || level === toast.level)
+  const closing = leaving || level === 'SAFE' || (level && toast && level !== toast.level)
   return (
     <>
       <div className="sound-bar">
@@ -100,18 +114,24 @@ export default function AlertToast() {
           {sound ? '알림 소리 끄기' : '알림 소리 켜기'}
         </button>
       </div>
-      {visible &&
+      {toast &&
         createPortal(
           <div
-            className={`alert-toast ${toast.level.toLowerCase()}`}
-            role="alert"
+            key={toast.key}
+            className={`alert-toast ${toast.level.toLowerCase()} ${closing ? 'leaving' : ''}`}
+            role={closing ? undefined : 'alert'}
+            aria-hidden={closing ? true : undefined}
             aria-atomic="true"
           >
             <div>
               <strong>{toast.title}</strong>
               <p>{toast.message}</p>
             </div>
-            <button aria-label="알림 닫기" onClick={() => setToast(null)}>
+            <button
+              aria-label="알림 닫기"
+              tabIndex={closing ? -1 : undefined}
+              onClick={() => setLeaving(true)}
+            >
               ×
             </button>
           </div>,
