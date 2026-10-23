@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, isFresh, number, PageTitle, time } from '../../components/ui'
 import RobotControls from './RobotControls'
@@ -8,8 +9,16 @@ import RecentAlerts from './RecentAlerts'
 import RiskTrend from './RiskTrend'
 import './dashboard.css'
 import { clockTime } from './clockTime'
+import DemoActions from './DemoActions'
 
 export default function DashboardPage() {
+  const { hash } = useLocation()
+  const controls = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    if (hash !== '#robot-controls' || !controls.current) return
+    controls.current.open = true
+    controls.current.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+  }, [hash])
   const { status, statusError, retry, now, stream } = useRobot()
   const sensorFresh = stream === 'connected' && isFresh(status.lastSeenAt, now, 3)
   const gpsFresh =
@@ -64,6 +73,7 @@ export default function DashboardPage() {
         }
       />
       <ErrorNotice message={statusError} retry={retry} />
+      <DemoActions />
       <div className="dashboard-metrics">
         <section
           className={`dashboard-metric summary-metric ${risk?.level.toLowerCase() ?? 'unknown'}`}
@@ -98,7 +108,7 @@ export default function DashboardPage() {
         <RecentAlerts />
       </div>
       <RiskTrend currentRisk={risk} />
-      <details className="dashboard-tools">
+      <details className="dashboard-tools" id="robot-controls" ref={controls}>
         <summary>로보독 제어 및 연결 정보</summary>
         <div className="dashboard-tools-grid">
           <RobotControls />
