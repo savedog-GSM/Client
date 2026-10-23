@@ -1,5 +1,6 @@
 import { useRobot } from '../../app/RobotProvider'
 import { Empty, PageTitle, RiskBadge, time } from '../../components/ui'
+import { alertTitle } from './alertTitle'
 
 export default function AlertsPage() {
   const { alerts } = useRobot()
@@ -13,19 +14,21 @@ export default function AlertsPage() {
         {alerts.length ? (
           alerts.map((alert) => (
             <article
-              className={`alert-row ${alert.robotStopped ? '' : 'urgent-text'}`}
+              className={`alert-row ${alert.telemetry.risk.level === 'DANGER' && !alert.robotStopped ? 'urgent-text' : ''}`}
               key={alert.telemetry.id}
             >
               <div className="section-heading">
                 <RiskBadge risk={alert.telemetry.risk} />
                 <time>{time(alert.telemetry.recordedAt)}</time>
               </div>
-              <h2>{alert.robotStopped ? '자동 대응 명령 전송' : '자동 정지 명령 전송 실패'}</h2>
+              <h2>{alertTitle(alert)}</h2>
               <p>{alert.message}</p>
               <small>
-                {alert.robotStopped
-                  ? '실제 정지 여부를 확인해주세요.'
-                  : '로보독 연결과 주변 상황을 즉시 확인해주세요.'}
+                {alert.telemetry.risk.level === 'CAUTION'
+                  ? '주변 장애물과 이동 경로를 확인해주세요.'
+                  : alert.robotStopped
+                    ? '실제 정지 여부를 확인해주세요.'
+                    : '로보독 연결과 주변 상황을 즉시 확인해주세요.'}
               </small>
             </article>
           ))
