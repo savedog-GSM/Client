@@ -68,7 +68,7 @@ export default function FacilitiesPage({
   const heading = useRef<HTMLHeadingElement>(null)
   const [category, setCategory] = useState<FacilityCategory | null>(null)
   const [pending, setPending] = useState(false)
-  const [message, setMessage] = useState('이용할 시설을 선택해주세요.')
+  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ origin: FacilityOrigin; data: FacilityRoute } | null>(null)
   const [mapOpen, setMapOpen] = useState(false)
@@ -77,7 +77,7 @@ export default function FacilitiesPage({
     setPending(false)
     setCategory(null)
     setError('')
-    setMessage('이용할 시설을 선택해주세요.')
+    setMessage('')
     return () => request.current?.abort()
   }, [api, simulated])
   useEffect(() => {
