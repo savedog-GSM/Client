@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import ExpandableMap from './ExpandableMap'
@@ -41,6 +41,7 @@ beforeEach(() => {
   })
 })
 afterEach(() => {
+  cleanup()
   for (const [name, descriptor] of [
     ['showModal', showModal],
     ['close', close],
