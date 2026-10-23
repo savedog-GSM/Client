@@ -27,7 +27,7 @@ export interface SafetyMapProps {
   segments: Segment[]
   reports: Report[]
   records: SafetyRecord[]
-  route: PathResult | null
+  route: Pick<PathResult, 'path'> | null
   onSelect: (point: Point) => void
   onBounds: (bounds: Bounds) => void
 }
