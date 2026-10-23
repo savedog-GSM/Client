@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from '../../app/ModeLink'
 import { useRobot } from '../../app/RobotProvider'
 import { Empty, riskNames } from '../../components/ui'
 import { clockTime } from './clockTime'

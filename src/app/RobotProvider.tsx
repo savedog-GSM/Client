@@ -10,6 +10,7 @@ import {
 import { createApi, errorMessage } from '../api/client'
 import { connectStream, type StreamState } from '../api/realtime'
 import type { ConnectionSettings, DangerAlert, Report, RobotStatus, Telemetry } from '../api/types'
+import { useDemoData } from '../features/demo/useDemoData'
 
 export const initialStatus: RobotStatus = {
   connected: false,
@@ -22,7 +23,7 @@ export const initialStatus: RobotStatus = {
   risk: null,
 }
 
-function useRobotData(settings: ConnectionSettings) {
+function useRobotData(settings: ConnectionSettings, enabled = true) {
   const api = useMemo(() => createApi(settings), [settings])
   const [status, setStatus] = useState(initialStatus)
   const [stream, setStream] = useState<StreamState>('connecting')
@@ -48,6 +49,7 @@ function useRobotData(settings: ConnectionSettings) {
   }, [])
 
   useEffect(() => {
+    if (!enabled) return
     const controller = new AbortController()
     let active = true
     let telemetryRevision = 0
@@ -148,9 +150,11 @@ function useRobotData(settings: ConnectionSettings) {
       controller.abort()
       stop()
     }
-  }, [api, settings, refresh, updateReport])
+  }, [api, settings, refresh, updateReport, enabled])
 
   return {
+    demo: false,
+    lastCommand: '',
     api,
     status,
     stream,
@@ -170,11 +174,38 @@ const RobotContext = createContext<ReturnType<typeof useRobotData> | null>(null)
 export function RobotProvider({
   settings,
   children,
+  demo = false,
+  scenario = '',
+  enabled = true,
 }: {
   settings: ConnectionSettings
   children: ReactNode
+  demo?: boolean
+  scenario?: string
+  enabled?: boolean
 }) {
-  const value = useRobotData(settings)
+  return demo ? (
+    <DemoProvider scenario={scenario}>{children}</DemoProvider>
+  ) : (
+    <LiveProvider settings={settings} enabled={enabled}>
+      {children}
+    </LiveProvider>
+  )
+}
+function DemoProvider({ scenario, children }: { scenario: string; children: ReactNode }) {
+  const value = useDemoData(scenario)
+  return <RobotContext.Provider value={value}>{children}</RobotContext.Provider>
+}
+function LiveProvider({
+  settings,
+  enabled,
+  children,
+}: {
+  settings: ConnectionSettings
+  enabled: boolean
+  children: ReactNode
+}) {
+  const value = useRobotData(settings, enabled)
   return <RobotContext.Provider value={value}>{children}</RobotContext.Provider>
 }
 export function useRobot() {

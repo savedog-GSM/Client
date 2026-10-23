@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from '../../app/ModeLink'
 import { useRobot } from '../../app/RobotProvider'
 import { isFresh, number } from '../../components/ui'
 import { clockTime } from './clockTime'

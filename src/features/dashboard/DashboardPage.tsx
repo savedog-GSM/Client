@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from '../../app/ModeLink'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, isFresh, number, PageTitle, time } from '../../components/ui'
 import RobotControls from './RobotControls'

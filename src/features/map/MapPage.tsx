@@ -7,9 +7,10 @@ import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
 import SafetyMap, { type Bounds } from './SafetyMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
+import { demoPosition } from '../demo/session'
 
 export default function MapPage() {
-  const { api, status, history, reports } = useRobot()
+  const { api, status, history, reports, demo } = useRobot()
   const [segments, setSegments] = useState<Segment[]>([])
   const [records, setRecords] = useState<SafetyRecord[]>([])
   const [bounds, setBounds] = useState<Bounds | null>(null)
@@ -36,6 +37,15 @@ export default function MapPage() {
   const searchRevision = useRef(0)
   const onBounds = useCallback((value: Bounds) => setBounds(value), [])
   useEffect(() => {
+    if (demo) {
+      setCurrentPosition(demoPosition)
+      setPositionAccuracy(3)
+      setLocating(false)
+      setLocationMessage(
+        '시연용 위치를 표시합니다. 경로는 실제 보행 안내에 사용할 수 없는 예시입니다.',
+      )
+      return
+    }
     setCurrentPosition(null)
     setPositionAccuracy(null)
     setLocating(true)
@@ -70,7 +80,7 @@ export default function MapPage() {
     return () => {
       active = false
     }
-  }, [locationRevision])
+  }, [locationRevision, demo])
   useEffect(() => {
     const controller = new AbortController()
     setMapError('')
