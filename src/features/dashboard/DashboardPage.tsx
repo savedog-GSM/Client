@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, isFresh, number, PageTitle, time } from '../../components/ui'
 import RobotControls from './RobotControls'
@@ -10,6 +9,8 @@ import RiskTrend from './RiskTrend'
 import './dashboard.css'
 import { clockTime } from './clockTime'
 import DemoActions from './DemoActions'
+import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 
 export default function DashboardPage() {
   const { hash } = useLocation()
