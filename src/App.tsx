@@ -79,9 +79,15 @@ function ControlPages() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/map" element={<MapPage />} />
-            <Route path="/routes" element={<Navigate to="/map" replace />} />
+            <Route
+              path="/routes"
+              element={<Navigate to={{ pathname: '/map', search }} replace />}
+            />
             <Route path="/history" element={<HistoryPage />} />
-            <Route path="/statistics" element={<Navigate to="/history" replace />} />
+            <Route
+              path="/statistics"
+              element={<Navigate to={{ pathname: '/history', search }} replace />}
+            />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/alerts" element={<AlertsPage />} />
             <Route
