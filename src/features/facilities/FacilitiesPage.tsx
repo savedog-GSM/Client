@@ -7,7 +7,7 @@ import SafetyMap from '../map/SafetyMap'
 import { demoPosition } from '../demo/session'
 import { createFacilitiesApi } from './api'
 import { demoFacilityRoute } from './demo'
-import { useButtonSound } from './useButtonSound'
+import { useVoiceGuide } from '../../components/useVoiceGuide'
 import {
   facilityNames,
   type FacilityCategory,
@@ -65,7 +65,7 @@ export default function FacilitiesPage({
   simulated?: boolean
 }) {
   const api = useMemo(() => createFacilitiesApi(settings), [settings])
-  const sound = useButtonSound()
+  const voice = useVoiceGuide()
   const request = useRef<AbortController | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const [category, setCategory] = useState<FacilityCategory | null>(null)
@@ -131,9 +131,9 @@ export default function FacilitiesPage({
           걸어가는 경로를 확인할 수 있어요.
         </p>
       </header>
-      {sound.error && (
-        <p className="facility-sound-error" role="status" aria-label="버튼 소리 상태">
-          {sound.error}
+      {voice.error && (
+        <p className="facility-sound-error" role="status" aria-label="음성 안내 상태">
+          {voice.error}
         </p>
       )}
       <div className="facility-buttons" role="group" aria-label="찾을 편의시설">
@@ -145,7 +145,7 @@ export default function FacilitiesPage({
             aria-pressed={category === value}
             disabled={pending && category === value}
             onClick={() => {
-              void sound.play()
+              voice.speak(facilityNames[value])
               void search(value)
             }}
           >
