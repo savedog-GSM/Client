@@ -91,7 +91,9 @@ it('취소한 위치 조회의 늦은 응답은 검색 요청을 발생시키지
     finish({ coords: { latitude: 35.1, longitude: 126.8, accuracy: 10 } } as GeolocationPosition),
   )
   expect(fetch).not.toHaveBeenCalled()
-  expect(screen.getByRole('status').textContent).toContain('검색을 취소했습니다')
+  expect(screen.getByRole('status', { name: '검색 상태' }).textContent).toContain(
+    '검색을 취소했습니다',
+  )
 })
 
 it('시연 모드는 실제 위치와 네트워크 없이 두 시설의 예시 경로를 제공한다', async () => {
