@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Store, Toilet, MapPin, ArrowRight, X } from 'lucide-react'
+import { Store, Toilet, MapPin, ArrowRight, X, Volume2, VolumeX } from 'lucide-react'
 import { errorMessage } from '../../api/client'
 import type { ConnectionSettings } from '../../api/types'
 import { ErrorNotice } from '../../components/ui'
@@ -7,6 +7,7 @@ import SafetyMap from '../map/SafetyMap'
 import { demoPosition } from '../demo/session'
 import { createFacilitiesApi } from './api'
 import { demoFacilityRoute } from './demo'
+import { useButtonSound } from './useButtonSound'
 import {
   facilityNames,
   type FacilityCategory,
@@ -64,6 +65,7 @@ export default function FacilitiesPage({
   simulated?: boolean
 }) {
   const api = useMemo(() => createFacilitiesApi(settings), [settings])
+  const sound = useButtonSound()
   const request = useRef<AbortController | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const [category, setCategory] = useState<FacilityCategory | null>(null)
@@ -129,6 +131,22 @@ export default function FacilitiesPage({
           걸어가는 경로를 확인할 수 있어요.
         </p>
       </header>
+      <div className="facility-sound">
+        <button onClick={sound.toggle} aria-pressed={sound.enabled}>
+          {sound.enabled ? (
+            <Volume2 size={20} aria-hidden="true" />
+          ) : (
+            <VolumeX size={20} aria-hidden="true" />
+          )}
+          <span>버튼 소리</span>
+          <strong aria-hidden="true">{sound.enabled ? '켜짐' : '꺼짐'}</strong>
+        </button>
+      </div>
+      {sound.error && (
+        <p className="facility-sound-error" role="status" aria-label="버튼 소리 상태">
+          {sound.error}
+        </p>
+      )}
       <div className="facility-buttons" role="group" aria-label="찾을 편의시설">
         {categories.map(({ category: value, icon: Icon, description }) => (
           <button
@@ -137,7 +155,10 @@ export default function FacilitiesPage({
             aria-label={description}
             aria-pressed={category === value}
             disabled={pending && category === value}
-            onClick={() => void search(value)}
+            onClick={() => {
+              void sound.play()
+              void search(value)
+            }}
           >
             <Icon size={42} aria-hidden="true" />
             <span>
@@ -148,7 +169,13 @@ export default function FacilitiesPage({
           </button>
         ))}
       </div>
-      <p className="facility-status" role="status" aria-live="polite" aria-atomic="true">
+      <p
+        className="facility-status"
+        role="status"
+        aria-label="검색 상태"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {message}
       </p>
       {pending && (
