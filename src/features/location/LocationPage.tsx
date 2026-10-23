@@ -21,7 +21,11 @@ export default function LocationPage({
   const [wakeMessage, setWakeMessage] = useState(
     '화면 꺼짐 방지를 지원하지 않으면 화면을 직접 켜두세요.',
   )
-  const [message, setMessage] = useState('전송 시작 버튼을 눌러 위치 접근을 허용해주세요.')
+  const [message, setMessage] = useState(
+    simulated
+      ? '전송 시작 버튼을 눌러 예시 GPS를 확인하세요.'
+      : '전송 시작 버튼을 눌러 위치 접근을 허용해주세요.',
+  )
   useEffect(() => {
     if (!running) return
     let active = true

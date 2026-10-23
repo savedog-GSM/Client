@@ -46,19 +46,15 @@ export function createDemoSession() {
       submittedAt: null,
     }
   }
-  const seeded = Array.from({ length: 60 }, (_, index) =>
-    sample(Date.now() - (59 - index) * 1000, index > 25 && index < 35 ? 'CAUTION' : 'SAFE'),
-  )
+  const seeded = Array.from({ length: 60 }, (_, index) => ({
+    ...sample(Date.now() - (59 - index) * 1000, index > 25 && index < 35 ? 'CAUTION' : 'SAFE'),
+    latitude: demoPosition.latitude - (59 - index) * 0.000005,
+    longitude: demoPosition.longitude - (59 - index) * 0.000002,
+  }))
   let snapshot = {
     history: seeded,
     status: statusFrom(seeded[59]),
-    alerts: [
-      {
-        message: '시연 · 전방 장애물이 감지되었습니다.',
-        robotStopped: true,
-        telemetry: sample(Date.now() - 20000, 'DANGER'),
-      },
-    ] as DangerAlert[],
+    alerts: [] as DangerAlert[],
     reports: [newReport(1)],
     now: Date.now(),
     lastCommand: '',
