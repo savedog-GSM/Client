@@ -14,6 +14,7 @@ import MapPage from './features/map/MapPage'
 import ReportsPage from './features/reports/ReportsPage'
 import Link from './app/ModeLink'
 import DemoBanner from './features/demo/DemoBanner'
+import FacilitiesPage from './features/facilities/FacilitiesPage'
 
 const navigation = [
   { path: '/', label: '대시보드', icon: Activity, image: '/figma/dashboard.svg' },
@@ -22,6 +23,7 @@ const navigation = [
   { path: '/reports', label: '위험 신고', icon: FileText },
   { path: '/alerts', label: '알림', icon: Bell, image: '/figma/alerts.svg' },
   { path: '/location', label: '위치 전송', icon: Smartphone },
+  { path: '/facilities', label: '편의시설', icon: Map },
 ]
 function ControlPages() {
   const { stream, reports, retry, alerts, demo } = useRobot()
@@ -115,7 +117,7 @@ function Application() {
   })
   const [showSettings, setShowSettings] = useState(false)
   const location = useLocation()
-  const phone = location.pathname === '/location'
+  const phone = location.pathname === '/location' || location.pathname === '/facilities'
   const query = new URLSearchParams(location.search)
   const demo = query.get('demo') === '1'
   return (
@@ -147,9 +149,27 @@ function Application() {
                 </span>
               </Link>
             </header>
+            <nav className="phone-pages" aria-label="스마트폰 메뉴">
+              <Link
+                to="/facilities"
+                aria-current={location.pathname === '/facilities' ? 'page' : undefined}
+              >
+                편의시설
+              </Link>
+              <Link
+                to="/location"
+                aria-current={location.pathname === '/location' ? 'page' : undefined}
+              >
+                위치 전송
+              </Link>
+            </nav>
             {demo && <DemoBanner />}
             <main id="main">
-              <LocationScreen settings={settings} />
+              {location.pathname === '/facilities' ? (
+                <FacilitiesPage settings={settings} simulated={demo} />
+              ) : (
+                <LocationScreen settings={settings} />
+              )}
             </main>
           </>
         ) : (
