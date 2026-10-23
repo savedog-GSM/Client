@@ -22,8 +22,8 @@ const navigation = [
   { path: '/history', label: '통계', icon: History, image: '/figma/history.svg' },
   { path: '/reports', label: '위험 신고', icon: FileText },
   { path: '/alerts', label: '알림', icon: Bell, image: '/figma/alerts.svg' },
-  { path: '/location', label: '위치 전송', icon: Smartphone },
   { path: '/facilities', label: '편의시설', icon: Map },
+  { path: '/location', label: '위치 전송', icon: Smartphone },
 ]
 function ControlPages() {
   const { stream, reports, retry, alerts, demo } = useRobot()
