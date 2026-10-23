@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 export function useButtonSound() {
-  const [enabled, setEnabled] = useState(true)
   const [error, setError] = useState('')
-  const enabledRef = useRef(true)
   const mounted = useRef(false)
   const audio = useRef<AudioContext | null>(null)
   const playing = useRef<OscillatorNode | null>(null)
@@ -20,12 +18,11 @@ export function useButtonSound() {
   }, [])
 
   async function play() {
-    if (!enabledRef.current) return
     try {
       if (!audio.current || audio.current.state === 'closed') audio.current = new AudioContext()
       const context = audio.current
       await context.resume()
-      if (!mounted.current || !enabledRef.current || audio.current !== context) return
+      if (!mounted.current || audio.current !== context) return
       playing.current?.stop()
       const oscillator = context.createOscillator()
       const gain = context.createGain()
@@ -51,15 +48,5 @@ export function useButtonSound() {
     }
   }
 
-  function toggle() {
-    enabledRef.current = !enabledRef.current
-    setEnabled(enabledRef.current)
-    setError('')
-    if (!enabledRef.current) {
-      playing.current?.stop()
-      playing.current = null
-    }
-  }
-
-  return { enabled, error, play, toggle }
+  return { error, play }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Store, Toilet, MapPin, ArrowRight, X, Volume2, VolumeX } from 'lucide-react'
+import { Store, Toilet, MapPin, ArrowRight, X } from 'lucide-react'
 import { errorMessage } from '../../api/client'
 import type { ConnectionSettings } from '../../api/types'
 import { ErrorNotice } from '../../components/ui'
@@ -131,17 +131,6 @@ export default function FacilitiesPage({
           걸어가는 경로를 확인할 수 있어요.
         </p>
       </header>
-      <div className="facility-sound">
-        <button onClick={sound.toggle} aria-pressed={sound.enabled}>
-          {sound.enabled ? (
-            <Volume2 size={20} aria-hidden="true" />
-          ) : (
-            <VolumeX size={20} aria-hidden="true" />
-          )}
-          <span>버튼 소리</span>
-          <strong aria-hidden="true">{sound.enabled ? '켜짐' : '꺼짐'}</strong>
-        </button>
-      </div>
       {sound.error && (
         <p className="facility-sound-error" role="status" aria-label="버튼 소리 상태">
           {sound.error}
