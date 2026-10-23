@@ -111,7 +111,6 @@ body:has(.presentation-guide) .location-page {
     padding: 14px;
   }
   .presentation-launcher {
-    right: 16px;
-    bottom: 16px;
+    display: none;
   }
 }
