@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { Maximize2, X } from 'lucide-react'
 import SafetyMap, { type MapView, type SafetyMapProps } from './SafetyMap'
@@ -13,7 +13,6 @@ export default function ExpandableMap(props: SafetyMapProps) {
   }, [])
   function close() {
     setExpanded(false)
-    button.current?.focus()
   }
   return (
     <>
@@ -31,14 +30,18 @@ export default function ExpandableMap(props: SafetyMapProps) {
       </div>
       {expanded &&
         createPortal(
-          <MapDialog {...props} initialView={view.current} onClose={close} />,
+          <MapDialog {...props} initialView={view.current} onClose={close} returnFocus={button} />,
           document.body,
         )}
     </>
   )
 }
 
-function MapDialog({ onClose, ...props }: SafetyMapProps & { onClose: () => void }) {
+function MapDialog({
+  onClose,
+  returnFocus,
+  ...props
+}: SafetyMapProps & { onClose: () => void; returnFocus: RefObject<HTMLButtonElement | null> }) {
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const element = dialog.current
@@ -48,8 +51,9 @@ function MapDialog({ onClose, ...props }: SafetyMapProps & { onClose: () => void
     return () => {
       element?.close()
       document.body.style.overflow = overflow
+      returnFocus.current?.focus({ preventScroll: true })
     }
-  }, [])
+  }, [returnFocus])
   return (
     <dialog
       ref={dialog}
