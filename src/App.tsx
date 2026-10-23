@@ -9,6 +9,7 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom'
+import PresentationGuide from './features/presentation/PresentationGuide'
 import type { ConnectionSettings } from './api/types'
 import ConnectionForm from './app/ConnectionForm'
 import { RobotProvider, useRobot } from './app/RobotProvider'
@@ -19,7 +20,6 @@ import HistoryPage from './features/history/HistoryPage'
 import LocationPage from './features/location/LocationPage'
 import MapPage from './features/map/MapPage'
 import ReportsPage from './features/reports/ReportsPage'
-import PresentationGuide from './features/presentation/PresentationGuide'
 
 const navigation = [
   { path: '/', label: '대시보드', icon: Activity, image: '/figma/dashboard.svg' },
