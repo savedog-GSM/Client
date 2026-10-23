@@ -57,35 +57,12 @@ it('자동 재생 없이 버튼 입력 때만 짧은 확인음을 재생한다',
   expect(audio.close).toHaveBeenCalledTimes(1)
 })
 
-it('소리를 끄면 재생하지 않고 다시 켜면 재생한다', async () => {
+it('설정 조작 없이 버튼을 누를 때마다 확인음을 재생한다', async () => {
   const view = renderHook(useButtonSound)
-  act(() => view.result.current.toggle())
   await act(async () => view.result.current.play())
-  expect(audio.construct).not.toHaveBeenCalled()
-  act(() => view.result.current.toggle())
   await act(async () => view.result.current.play())
-  expect(audio.start).toHaveBeenCalledTimes(1)
-})
-
-it('오디오 시작을 기다리는 중에 음소거하면 소리가 나지 않는다', async () => {
-  let resume: () => void = () => {}
-  audio.resume.mockImplementation(
-    () =>
-      new Promise<void>((resolve) => {
-        resume = resolve
-      }),
-  )
-  const view = renderHook(useButtonSound)
-  let playback: Promise<void>
-  act(() => {
-    playback = view.result.current.play()
-  })
-  act(() => view.result.current.toggle())
-  await act(async () => {
-    resume()
-    await playback
-  })
-  expect(audio.start).not.toHaveBeenCalled()
+  expect(audio.construct).toHaveBeenCalledTimes(1)
+  expect(audio.start).toHaveBeenCalledTimes(2)
 })
 
 it('화면을 나간 뒤 늦게 시작된 오디오는 재생하지 않는다', async () => {
