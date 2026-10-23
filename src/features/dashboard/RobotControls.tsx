@@ -3,6 +3,7 @@ import type { CommandType } from '../../api/types'
 import { errorMessage } from '../../api/client'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice } from '../../components/ui'
+import { useLocation } from 'react-router-dom'
 
 const commands: { type: CommandType; name: string }[] = [
   { type: 'FORWARD', name: '전진' },
@@ -13,13 +14,18 @@ const commands: { type: CommandType; name: string }[] = [
   { type: 'BARK', name: '짖기' },
 ]
 export default function RobotControls() {
-  const { api, status, stream, statusError } = useRobot()
+  const { search } = useLocation()
+  const demo = new URLSearchParams(search).get('demo') === '1'
+  const robot = useRobot()
+  const { api, status, stream, statusError } = robot
+  const simulationReady = 'demo' in robot && robot.demo === true
   const [speed, setSpeed] = useState(30)
   const [duration, setDuration] = useState(1000)
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const unavailable = !status.connected || stream !== 'connected' || !!statusError
+  const unavailable =
+    !status.connected || stream !== 'connected' || !!statusError || (demo && !simulationReady)
   async function send(type: CommandType) {
     setPending(true)
     setError('')
@@ -27,7 +33,11 @@ export default function RobotControls() {
     try {
       const moving = ['FORWARD', 'BACKWARD', 'TURN_LEFT', 'TURN_RIGHT'].includes(type)
       const result = await api.command(moving ? { type, speed, durationMs: duration } : { type })
-      setMessage(`명령 #${result.commandId} 전송 완료. 실제 동작 여부는 로보독에서 확인해주세요.`)
+      setMessage(
+        demo
+          ? `시연 명령 #${result.commandId} 처리 완료 · ${type}. 실제 로봇으로 전송하지 않았습니다.`
+          : `명령 #${result.commandId} 전송 완료. 실제 동작 여부는 로보독에서 확인해주세요.`,
+      )
     } catch (error) {
       setError(errorMessage(error))
     } finally {
@@ -39,7 +49,11 @@ export default function RobotControls() {
       <div className="section-heading">
         <div>
           <h2>로보독 제어</h2>
-          <p>연결된 로보독에 동작을 요청합니다.</p>
+          <p>
+            {demo
+              ? '예시 데이터로 동작을 확인합니다. 실제 로봇은 움직이지 않습니다.'
+              : '연결된 로보독에 동작을 요청합니다.'}
+          </p>
         </div>
         <span className={`badge ${unavailable ? 'unknown' : 'safe'}`}>
           {unavailable ? '제어 불가' : '연결됨'}
