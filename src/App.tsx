@@ -4,7 +4,7 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 're
 import type { ConnectionSettings } from './api/types'
 import ConnectionForm from './app/ConnectionForm'
 import { RobotProvider, useRobot } from './app/RobotProvider'
-import AlertBanner from './features/alerts/AlertBanner'
+import AlertToast from './features/alerts/AlertToast'
 import AlertsPage from './features/alerts/AlertsPage'
 import PresentationGuide from './features/presentation/PresentationGuide'
 import DashboardPage from './features/dashboard/DashboardPage'
@@ -76,7 +76,7 @@ function ControlPages() {
         </header>
         {demo && <DemoBanner />}
         <main id="main" className="main-content">
-          <AlertBanner />
+          <AlertToast />
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/map" element={<MapPage />} />
