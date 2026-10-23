@@ -28,10 +28,13 @@ afterEach(() => vi.useRealTimers())
 
 it('알림은 3초 뒤 사라지고 센서가 계속 갱신되어도 다시 뜨지 않는다', () => {
   const view = render(<AlertToast />)
-  act(() => vi.advanceTimersByTime(2999))
+  act(() => vi.advanceTimersByTime(2719))
   expect(screen.getByRole('alert').textContent).toContain('알림 1')
   act(() => vi.advanceTimersByTime(1))
   expect(screen.queryByRole('alert')).toBeNull()
+  expect(document.querySelector('.alert-toast.leaving')).toBeTruthy()
+  act(() => vi.advanceTimersByTime(280))
+  expect(document.querySelector('.alert-toast')).toBeNull()
   robot.status = { ...robot.status, lastSeenAt: new Date().toISOString() }
   view.rerender(<AlertToast />)
   expect(screen.queryByRole('alert')).toBeNull()
@@ -43,7 +46,22 @@ it('안전으로 바꾸면 즉시 닫고 기존 알림 기록은 유지한다', 
   view.rerender(<AlertToast />)
   expect(screen.queryByRole('alert')).toBeNull()
   expect(robot.alerts).toHaveLength(1)
+  act(() => vi.advanceTimersByTime(280))
   expect(vi.getTimerCount()).toBe(0)
+})
+
+it('퇴장 중 새 알림을 받으면 이전 퇴장을 취소하고 새 알림을 끝까지 표시한다', () => {
+  const view = render(<AlertToast />)
+  act(() => vi.advanceTimersByTime(2800))
+  expect(screen.queryByRole('alert')).toBeNull()
+  robot.alerts = [alert(2), ...robot.alerts]
+  view.rerender(<AlertToast />)
+  act(() => vi.advanceTimersByTime(200))
+  expect(screen.getByRole('alert').textContent).toContain('알림 2')
+  act(() => vi.advanceTimersByTime(2520))
+  expect(document.querySelector('.alert-toast.leaving')).toBeTruthy()
+  act(() => vi.advanceTimersByTime(280))
+  expect(document.querySelector('.alert-toast')).toBeNull()
 })
 
 it('새 알림은 이전 타이머에 닫히지 않고 새로 3초 동안 표시한다', () => {
