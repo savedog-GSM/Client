@@ -302,18 +302,6 @@ export default function MapPage() {
               <small>{end ? endLabel : '지도를 눌러 선택'}</small>
             </button>
           </div>
-          <button
-            disabled={!position}
-            onClick={() => {
-              invalidateRoute()
-              setStart(position)
-              setStartAddress('마지막 로보독 위치')
-              setFocus(position)
-              setSelecting('end')
-            }}
-          >
-            마지막 로보독 위치에서 출발
-          </button>
           <RouteModeSelect
             value={mode}
             onChange={(value) => {

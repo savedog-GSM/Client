@@ -628,10 +628,19 @@ button[aria-pressed='true'] {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 .map-panel {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.map-panel .map-container {
+  flex: 1;
+  min-height: 560px;
+}
+.map-panel > button {
+  align-self: flex-start;
 }
 .map-container {
   position: relative;
@@ -1073,6 +1082,9 @@ button[aria-pressed='true'] {
   }
   .map-container {
     height: 430px;
+  }
+  .map-panel .map-container {
+    min-height: 430px;
   }
   .error-notice {
     flex-wrap: wrap;
