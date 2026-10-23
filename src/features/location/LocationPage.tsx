@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createApi, errorMessage } from '../../api/client'
+import { createApi, errorMessage, type Api } from '../../api/client'
 import type { ConnectionSettings, LocationInput } from '../../api/types'
 import { ErrorNotice, number, PageTitle } from '../../components/ui'
+import { demoPosition } from '../demo/session'
 
-export default function LocationPage({ settings }: { settings: ConnectionSettings }) {
-  const api = useMemo(() => createApi(settings), [settings])
+export default function LocationPage({
+  settings,
+  apiOverride,
+  simulated = false,
+}: {
+  settings: ConnectionSettings
+  apiOverride?: Api
+  simulated?: boolean
+}) {
+  const api = useMemo(() => apiOverride ?? createApi(settings), [settings, apiOverride])
   const [running, setRunning] = useState(false)
   const [location, setLocation] = useState<LocationInput | null>(null)
   const [sentAt, setSentAt] = useState('')
@@ -31,13 +40,30 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
           if (active) {
             setSentAt(new Date().toLocaleTimeString('ko-KR'))
             setError('')
-            setMessage('위치를 서버에 전송하고 있습니다.')
+            setMessage(
+              simulated
+                ? '예시 위치를 시연 데이터에 반영하고 있습니다. 서버 전송은 없습니다.'
+                : '위치를 서버에 전송하고 있습니다.',
+            )
           }
         } catch (error) {
           if (active) setError(errorMessage(error))
         }
       }
       sending = false
+    }
+    if (simulated) {
+      const update = () => {
+        const value = { ...demoPosition, accuracy: 3 }
+        setLocation(value)
+        void send(value)
+      }
+      update()
+      const timer = window.setInterval(update, 2000)
+      return () => {
+        active = false
+        window.clearInterval(timer)
+      }
     }
     const watchId = navigator.geolocation.watchPosition(
       ({ coords }) => {
@@ -96,9 +122,13 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
       void wakeLock?.release()
       document.removeEventListener('visibilitychange', visibility)
     }
-  }, [api, running])
+  }, [api, running, simulated])
   function start() {
     setError('')
+    if (simulated) {
+      setRunning(true)
+      return
+    }
     if (!window.isSecureContext) {
       setError('위치 전송 화면은 HTTPS 또는 localhost에서 열어주세요.')
       return
@@ -119,7 +149,11 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
     <div className="location-page">
       <PageTitle
         title="스마트폰 위치 전송"
-        description="로보독에 올려둔 스마트폰에서 이 화면을 열어주세요."
+        description={
+          simulated
+            ? '시연용 GPS 위치입니다. 실제 위치 접근이나 서버 전송은 하지 않습니다.'
+            : '로보독에 올려둔 스마트폰에서 이 화면을 열어주세요.'
+        }
       />
       <ErrorNotice message={error} />
       <section className="panel location-card">
@@ -156,7 +190,7 @@ export default function LocationPage({ settings }: { settings: ConnectionSetting
         >
           {running ? '전송 중지' : '위치 전송 시작'}
         </button>
-        <p className="muted">{wakeMessage}</p>
+        <p className="muted">{simulated ? '예시 GPS · 위치 오차 3m' : wakeMessage}</p>
       </section>
       <p className="muted">
         화면을 켜두고 이 페이지를 유지해주세요. 위치 오차 30m 이내의 값만 전송합니다. 위치

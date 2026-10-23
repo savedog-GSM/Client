@@ -1,14 +1,6 @@
 import { useState } from 'react'
 import { Activity, Bell, FileText, History, Map, Settings, Smartphone } from 'lucide-react'
-import {
-  BrowserRouter,
-  Link,
-  NavLink,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from 'react-router-dom'
+import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { ConnectionSettings } from './api/types'
 import ConnectionForm from './app/ConnectionForm'
 import { RobotProvider, useRobot } from './app/RobotProvider'
@@ -19,6 +11,8 @@ import HistoryPage from './features/history/HistoryPage'
 import LocationPage from './features/location/LocationPage'
 import MapPage from './features/map/MapPage'
 import ReportsPage from './features/reports/ReportsPage'
+import Link from './app/ModeLink'
+import DemoBanner from './features/demo/DemoBanner'
 
 const navigation = [
   { path: '/', label: '대시보드', icon: Activity, image: '/figma/dashboard.svg' },
@@ -29,7 +23,8 @@ const navigation = [
   { path: '/location', label: '위치 전송', icon: Smartphone },
 ]
 function ControlPages() {
-  const { stream, reports, retry, alerts } = useRobot()
+  const { stream, reports, retry, alerts, demo } = useRobot()
+  const { search } = useLocation()
   const streamNames = {
     connecting: '연결 중',
     connected: '실시간 연결됨',
@@ -50,7 +45,7 @@ function ControlPages() {
         </Link>
         <nav aria-label="주 메뉴">
           {navigation.map(({ path, label, icon: Icon, image }) => (
-            <NavLink to={path} end={path === '/'} key={path}>
+            <NavLink to={{ pathname: path, search }} end={path === '/'} key={path}>
               {image ? <img src={image} alt="" /> : <Icon size={21} />}
               {label}
               {path === '/reports' && waiting > 0 && <span className="nav-count">{waiting}</span>}
@@ -63,7 +58,7 @@ function ControlPages() {
         <div className="sidebar-bottom">
           <div className="sidebar-connection">
             <span className={`stream-dot ${stream}`} />
-            <span>{streamNames[stream]}</span>
+            <span>{demo ? '시연 데이터 재생 중' : streamNames[stream]}</span>
           </div>
           <p>지켜멍 로봇 · DEVICE 01</p>
           {stream !== 'connected' && <button onClick={retry}>다시 연결</button>}
@@ -78,6 +73,7 @@ function ControlPages() {
             {stream !== 'connected' && <button onClick={retry}>다시 연결</button>}
           </div>
         </header>
+        {demo && <DemoBanner />}
         <main id="main" className="main-content">
           <AlertBanner />
           <Routes>
@@ -113,6 +109,8 @@ function Application() {
   const [showSettings, setShowSettings] = useState(false)
   const location = useLocation()
   const phone = location.pathname === '/location'
+  const query = new URLSearchParams(location.search)
+  const demo = query.get('demo') === '1'
   return (
     <>
       <a className="skip-link" href="#main">
@@ -125,25 +123,32 @@ function Application() {
         <Settings size={17} />
         연결 설정
       </button>
-      {phone ? (
-        <>
-          <header className="phone-header">
-            <Link to="/" className="phone-brand">
-              <img src="/savedog-icon.png" alt="" width={38} height={38} />
-              <span>
-                지켜멍 <small>관제 센터로 이동</small>
-              </span>
-            </Link>
-          </header>
-          <main id="main">
-            <LocationPage settings={settings} />
-          </main>
-        </>
-      ) : (
-        <RobotProvider settings={settings}>
+      <RobotProvider
+        key={`${demo}-${query.get('run') ?? ''}`}
+        settings={settings}
+        demo={demo}
+        scenario={query.get('scenario') ?? ''}
+        enabled={!phone}
+      >
+        {phone ? (
+          <>
+            <header className="phone-header">
+              <Link to="/" className="phone-brand">
+                <img src="/savedog-icon.png" alt="" width={38} height={38} />
+                <span>
+                  지켜멍 <small>관제 센터로 이동</small>
+                </span>
+              </Link>
+            </header>
+            {demo && <DemoBanner />}
+            <main id="main">
+              <LocationScreen settings={settings} />
+            </main>
+          </>
+        ) : (
           <ControlPages />
-        </RobotProvider>
-      )}
+        )}
+      </RobotProvider>
       {showSettings && (
         <ConnectionForm
           settings={settings}
@@ -153,6 +158,10 @@ function Application() {
       )}
     </>
   )
+}
+function LocationScreen({ settings }: { settings: ConnectionSettings }) {
+  const { demo, api } = useRobot()
+  return <LocationPage settings={settings} simulated={demo} apiOverride={demo ? api : undefined} />
 }
 export default function App() {
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from '../../app/ModeLink'
 import type { Risk, Telemetry } from '../../api/types'
 import { errorMessage } from '../../api/client'
 import { useRobot } from '../../app/RobotProvider'
