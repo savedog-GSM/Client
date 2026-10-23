@@ -158,13 +158,6 @@ select {
   object-fit: contain;
   border-radius: 12px;
 }
-.brand small {
-  display: block;
-  letter-spacing: 2px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #8292ad;
-}
 .sidebar nav {
   display: grid;
   gap: 8px;
