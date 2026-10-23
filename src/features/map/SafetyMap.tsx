@@ -3,6 +3,7 @@ import type { PathResult, Point, Report, SafetyRecord, Segment } from '../../api
 import { errorMessage } from '../../api/client'
 import { ErrorNotice } from '../../components/ui'
 import { loadKakaoMaps } from './kakao'
+import './current-location-pin.css'
 
 export interface Bounds {
   swLat: number
@@ -140,14 +141,29 @@ export default function SafetyMap(props: Props) {
     if (props.position) {
       marker(props.position, '로보독', '#13765b')
     }
-    if (props.currentPosition)
-      marker(
-        props.currentPosition,
+    if (props.currentPosition) {
+      const content = document.createElement('div')
+      content.className = 'current-location-pin'
+      const icon = document.createElement('img')
+      icon.src = '/current-location-pin.svg'
+      icon.alt = ''
+      const label = document.createElement('span')
+      label.textContent =
         props.positionAccuracy != null && props.positionAccuracy > 100
           ? '대략적인 현재 위치'
-          : '현재 위치',
-        '#234cba',
+          : '현재 위치'
+      content.append(icon, label)
+      overlays.push(
+        new maps.CustomOverlay({
+          map: map.current,
+          position: latLng(props.currentPosition),
+          content,
+          xAnchor: 0.5,
+          yAnchor: 1,
+          zIndex: 10,
+        }),
       )
+    }
     if (props.start) marker(props.start, '출발', '#234cba')
     if (props.end) marker(props.end, '도착', '#7136a3')
     return () => overlays.forEach((overlay) => overlay.setMap(null))
