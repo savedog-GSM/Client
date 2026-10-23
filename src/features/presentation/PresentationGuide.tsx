@@ -51,6 +51,7 @@ export default function PresentationGuide() {
   const query = new URLSearchParams(location.search)
   const active = query.get('present') === '1'
   const demo = query.get('demo') === '1'
+  if (location.pathname === '/facilities') return null
   const index = Math.max(
     0,
     steps.findIndex(
