@@ -20,7 +20,12 @@ export default function HistoryPage() {
       .telemetry(query.from, query.to, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) {
-          setRecords(data)
+          setRecords(
+            [...data].sort(
+              (a, b) =>
+                (Date.parse(b.recordedAt) || 0) - (Date.parse(a.recordedAt) || 0) || b.id - a.id,
+            ),
+          )
           setPage(0)
         }
       })
@@ -47,7 +52,7 @@ export default function HistoryPage() {
     <>
       <PageTitle
         title="이동 기록"
-        description="서버에 저장된 센서와 위험도 기록을 기간별로 조회합니다."
+        description="서버에 저장된 센서와 위험도 기록을 최신순으로 조회합니다."
       />
       <form className="panel filter-form" onSubmit={search}>
         <label>
@@ -79,7 +84,7 @@ export default function HistoryPage() {
       />
       <section className="panel">
         <div className="section-heading">
-          <h2>이동 내역</h2>
+          <h2>센서 기록 · 최신순</h2>
           <span>{records.length.toLocaleString()}건</span>
         </div>
         {loading ? (
