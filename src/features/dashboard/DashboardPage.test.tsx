@@ -65,15 +65,15 @@ it('현재 위험 상태와 최근 알림을 구분하고 새로고침을 실행
   await userEvent.click(screen.getByRole('button', { name: '새로고침' }))
   expect(robot.retry).toHaveBeenCalledTimes(1)
 })
-it('경로 표시를 끄고 기존 제어 메뉴를 펼칠 수 있다', async () => {
+it('메인에는 지도가 아닌 카메라를 표시하고 제어 메뉴를 따로 펼친다', async () => {
   robot.history = [
     { ...telemetry, id: 1, recordedAt: new Date(robot.now - 1000).toISOString() },
     { ...telemetry, id: 2, latitude: 37.5666, recordedAt: new Date(robot.now).toISOString() },
   ]
   showDashboard()
-  expect(screen.getByLabelText('지도 이동 구간').textContent).toBe('1')
-  await userEvent.click(screen.getByRole('checkbox', { name: '경로 표시' }))
-  expect(screen.getByLabelText('지도 이동 구간').textContent).toBe('0')
+  expect(screen.queryByLabelText('지도 이동 구간')).toBeNull()
+  expect(screen.getAllByRole('button', { name: '카메라 보기' })).toHaveLength(1)
+  expect(screen.getByRole('button', { name: '로봇 제어' }).closest('details')?.open).toBe(false)
   await userEvent.click(screen.getByText('로보독 제어 및 연결 정보'))
   expect(screen.getByRole('button', { name: '로봇 제어' })).toBeTruthy()
   expect(screen.getByRole('button', { name: '카메라 보기' })).toBeTruthy()

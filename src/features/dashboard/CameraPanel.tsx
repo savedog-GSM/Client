@@ -5,9 +5,9 @@ import { Empty } from '../../components/ui'
 import type { VisionResult } from '../../api/types'
 import VisionPanel from './VisionPanel'
 
-export default function CameraPanel() {
+export default function CameraPanel({ autoStart = false }: { autoStart?: boolean }) {
   const { api, now, demo } = useRobot()
-  const [enabled, setEnabled] = useState(false)
+  const [enabled, setEnabled] = useState(autoStart)
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
   const [visionError, setVisionError] = useState('')
@@ -60,7 +60,7 @@ export default function CameraPanel() {
     }
   }, [api, enabled])
   return (
-    <section className="panel">
+    <section className="panel dashboard-camera">
       <div className="section-heading">
         <div>
           <h2>카메라 및 물체 인식</h2>

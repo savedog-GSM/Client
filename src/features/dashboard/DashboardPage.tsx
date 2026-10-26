@@ -3,7 +3,6 @@ import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, isFresh, number, PageTitle, time } from '../../components/ui'
 import RobotControls from './RobotControls'
 import CameraPanel from './CameraPanel'
-import DashboardMap from './DashboardMap'
 import RecentAlerts from './RecentAlerts'
 import RiskTrend from './RiskTrend'
 import './dashboard.css'
@@ -105,7 +104,7 @@ export default function DashboardPage() {
         ))}
       </div>
       <div className="dashboard-overview">
-        <DashboardMap />
+        <CameraPanel autoStart />
         <RecentAlerts />
       </div>
       <RiskTrend currentRisk={risk} />
@@ -150,7 +149,6 @@ export default function DashboardPage() {
               </div>
             </dl>
           </section>
-          <CameraPanel />
         </div>
       </details>
       <footer className="dashboard-footer">
