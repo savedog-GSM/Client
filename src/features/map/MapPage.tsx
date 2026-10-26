@@ -175,42 +175,11 @@ export default function MapPage() {
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
           <ErrorNotice message={error} />
-          {start && end && !demo && (
-            <div className="route-external">
-              <a href={kakaoRouteUrl(start, end)} target="_blank" rel="noopener noreferrer">
-                카카오맵 도보 길찾기 열기 ↗
-              </a>
-              <p className="muted">
-                새 창에서 일반 보행 경로를 확인합니다. 로보독의 위험도 기록은 반영되지 않습니다.
-              </p>
-            </div>
-          )}
-          {route && (
-            <dl className="details">
-              <div>
-                <dt>총 거리</dt>
-                <dd>{number(route.distanceMeters, ' m')}</dd>
-              </div>
-              <div>
-                <dt>{demo ? '예상 시간 (시연용)' : '예상 도보 시간'}</dt>
-                <dd>약 {Math.ceil(route.durationSeconds / 60)}분</dd>
-              </div>
-            </dl>
-          )}
-          {route && route.steps.length > 0 && (
-            <ol className="walking-steps">
-              {route.steps.map((step, index) => (
-                <li key={index}>
-                  <span>{step.instruction}</span>
-                  <small>{number(step.distanceMeters, ' m')}</small>
-                </li>
-              ))}
-            </ol>
           )}
           <p className="muted">
             {demo
               ? '시연용 예시 경로입니다.'
-              : '도보 경로를 기준으로 한 예상 이동 경로입니다. 실시간 장애물은 반영되지 않습니다.'}
+              : '도보 경로를 기준으로 한 예상 이동 경로입니다.'}
           </p>
         </aside>
       </div>
