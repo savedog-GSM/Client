@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { Point } from '../../api/types'
 import { useRobot } from '../../app/RobotProvider'
-import { ErrorNotice, number, PageTitle } from '../../components/ui'
+import { ErrorNotice, PageTitle } from '../../components/ui'
 import ExpandableMap from './ExpandableMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
-import { kakaoRouteUrl } from './kakaoRouteUrl'
 
 import { useCurrentPosition } from './useCurrentPosition'
 import { useWalkingRoute } from './useWalkingRoute'
