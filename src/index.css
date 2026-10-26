@@ -1123,6 +1123,7 @@ button[aria-pressed='true'] {
 .walking-steps li {
   margin: 14px 0;
 }
+
 .walking-steps small {
   display: block;
   color: #738097;
