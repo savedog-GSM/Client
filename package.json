@@ -9,8 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write src vite.config.ts vitest.config.ts eslint.config.js",
-    "format:check": "prettier --check src vite.config.ts vitest.config.ts eslint.config.js",
+    "format": "prettier --write src api vite.config.ts vitest.config.ts eslint.config.js",
+    "format:check": "prettier --check src api vite.config.ts vitest.config.ts eslint.config.js",
     "preview": "vite preview"
   },
   "engines": {
@@ -28,6 +28,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.0",
+    "@types/node": "^24.19.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",

@@ -4,7 +4,7 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["kakao.maps.d.ts"],
+    "types": ["kakao.maps.d.ts", "node"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -17,5 +17,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "api"]
 }
