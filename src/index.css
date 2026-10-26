@@ -7,7 +7,7 @@
     'Segoe UI',
     sans-serif;
   --color-text: #111111;
-  --color-muted: #737373;
+  --color-muted: #737373;ㄹ
   --color-border: #e5e5e5;
   --color-primary: #315ee8;
   --color-sidebar: #121e35;
@@ -1123,13 +1123,16 @@ button[aria-pressed='true'] {
 .walking-steps li {
   margin: 14px 0;
 }
+
 .walking-steps small {
   display: block;
   color: #738097;
   margin-top: 4px;}
+
 .route-external {
   margin-top: 16px;
 }
+
 .route-external a {
   display: block;
   padding: 14px 16px;
