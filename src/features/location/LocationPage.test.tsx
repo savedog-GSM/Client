@@ -98,6 +98,22 @@ it('전송 중 화면을 나가면 위치 추적을 정리한다', async () => {
   expect(clearWatch).toHaveBeenCalledWith(42)
 })
 
+it('화면을 나간 뒤 발급된 화면 잠금도 바로 해제한다', async () => {
+  let grantLock!: (lock: WakeLockSentinel) => void
+  const release = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'wakeLock', {
+    configurable: true,
+    value: {
+      request: vi.fn(() => new Promise<WakeLockSentinel>((resolve) => (grantLock = resolve))),
+    },
+  })
+  const view = render(<LocationPage settings={settings} />)
+  await userEvent.click(screen.getByRole('button', { name: '위치 전송 시작' }))
+  view.unmount()
+  await act(async () => grantLock({ release } as unknown as WakeLockSentinel))
+  expect(release).toHaveBeenCalledOnce()
+})
+
 it('음성 안내가 지원되지 않아도 위치 추적은 시작한다', async () => {
   vi.stubGlobal('speechSynthesis', undefined)
   render(<LocationPage settings={settings} />)
