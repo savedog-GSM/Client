@@ -30,7 +30,15 @@ export default function ConnectionForm({
         url.hash
       )
         throw new Error()
-      onSave({ ...draft, apiUrl: draft.apiUrl.trim().replace(/\/$/, '') })
+      onSave({
+        ...draft,
+        apiUrl: draft.apiUrl.trim().replace(/\/$/, ''),
+        operatorToken: draft.operatorToken
+          .trim()
+          .replace(/^Bearer\s+/i, '')
+          .trim(),
+        deviceToken: draft.deviceToken.trim(),
+      })
       onClose()
     } catch {
       setError('http 또는 https로 시작하는 서버 주소를 입력해주세요.')
@@ -60,6 +68,9 @@ export default function ConnectionForm({
             onChange={(e) => setDraft({ ...draft, operatorToken: e.target.value })}
           />
         </label>
+        <p className="muted">
+          서버의 OPERATOR_API_TOKEN 값을 입력합니다. 지도·카메라·알림 조회에 필요합니다.
+        </p>
         <label>
           장치 토큰
           <input
@@ -69,6 +80,7 @@ export default function ConnectionForm({
             onChange={(e) => setDraft({ ...draft, deviceToken: e.target.value })}
           />
         </label>
+        <p className="muted">서버의 DEVICE_API_TOKEN 값입니다. 관제 토큰과 서로 다릅니다.</p>
         <p className="muted">
           서버에서 인증을 켠 경우 해당 토큰을 입력해주세요. 스마트폰 위치 전송에는 장치 토큰만
           사용합니다.
