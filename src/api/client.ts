@@ -52,7 +52,11 @@ export function createApi(settings: ConnectionSettings) {
       throw new ApiError(
         response.status,
         error?.code ?? 'HTTP_ERROR',
-        error?.message ?? `요청에 실패했습니다. (${response.status})`,
+        response.status === 401
+          ? device
+            ? '장치 인증에 실패했습니다. 연결 설정에서 서버의 DEVICE_API_TOKEN과 같은 장치 토큰을 입력해주세요.'
+            : '관제 인증에 실패했습니다. 연결 설정에서 서버의 OPERATOR_API_TOKEN과 같은 관제 토큰을 입력해주세요. 새로고침하면 다시 입력해야 합니다.'
+          : (error?.message ?? `요청에 실패했습니다. (${response.status})`),
       )
     }
     if (response.status === 204) return undefined as T
