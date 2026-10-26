@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { cleanup, render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import SafetyMap from './SafetyMap'
 import { loadKakaoMaps } from './kakao'
@@ -60,7 +60,10 @@ beforeEach(() => {
     },
   )
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 it('로봇 위치보다 현재 위치를 우선해 중심을 잡는다', async () => {
   render(<SafetyMap {...props} currentPosition={{ latitude: 35.123, longitude: 126.456 }} />)
