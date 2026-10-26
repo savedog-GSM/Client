@@ -63,6 +63,13 @@ it('카메라를 켰을 때만 프레임과 관제 인식 결과를 함께 조�
   expect(robot.api.vision).toHaveBeenCalledTimes(2)
 })
 
+it('메인 대시보드에서는 버튼을 누르지 않아도 조회를 시작한다', async () => {
+  await act(async () => render(<CameraPanel autoStart />))
+  expect(robot.api.frame).toHaveBeenCalledOnce()
+  expect(robot.api.vision).toHaveBeenCalledOnce()
+  expect(screen.getByRole('button', { name: '조회 중지' })).toBeTruthy()
+})
+
 it('사진 조회가 실패해도 인식 결과는 표시한다', async () => {
   robot.api.frame.mockRejectedValue(new Error('사진 조회 실패'))
   render(<CameraPanel />)
