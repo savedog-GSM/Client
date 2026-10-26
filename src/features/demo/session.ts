@@ -183,6 +183,30 @@ export function createDemoSession() {
       return { url: '/demo/obstacle.svg' }
     },
     frame: async () => ({ url: '/demo/obstacle.svg' }),
+    vision: async () => ({
+      available: true,
+      fresh: true,
+      frameReceivedAt: new Date().toISOString(),
+      analyzedAt: new Date().toISOString(),
+      elapsedMs: 80,
+      score: risks[level].score,
+      level,
+      reason: level === 'SAFE' ? null : '시연 · 카메라 전방 자전거',
+      detections:
+        level === 'SAFE'
+          ? []
+          : [
+              {
+                label: 'bicycle',
+                name: '자전거',
+                confidence: 0.93,
+                left: 0.3,
+                top: 0.2,
+                right: 0.8,
+                bottom: 0.9,
+              },
+            ],
+    }),
     location: async (value) => {
       point = { latitude: value.latitude, longitude: value.longitude }
       tick()

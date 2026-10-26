@@ -83,3 +83,23 @@ export interface ConnectionSettings {
   operatorToken: string
   deviceToken: string
 }
+export interface VisionDetection {
+  label: string
+  name: string
+  confidence: number
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
+export interface VisionResult {
+  available: boolean
+  fresh: boolean
+  frameReceivedAt: string | null
+  analyzedAt: string | null
+  elapsedMs: number | null
+  score: number | null
+  level: RiskLevel | null
+  reason: string | null
+  detections: VisionDetection[]
+}

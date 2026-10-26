@@ -4,6 +4,17 @@ import { settings } from '../test/fixtures'
 
 afterEach(() => vi.unstubAllGlobals())
 describe('API 인증과 오류 처리', () => {
+  it('인식 결과는 관제 인증과 취소 신호를 사용해 조회한다', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response('{}'))
+    vi.stubGlobal('fetch', fetch)
+    const controller = new AbortController()
+    await createApi(settings).vision(controller.signal)
+    const [url, options] = fetch.mock.calls[0]
+    expect(url).toBe('http://localhost:8080/api/robot/vision')
+    expect(options.headers.get('Authorization')).toBe('Bearer operator-test')
+    expect(options.headers.has('X-Device-Token')).toBe(false)
+    expect(options.signal).toBe(controller.signal)
+  })
   it('관제 조회에는 Bearer 토큰만 보낸다', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response('{}'))
     vi.stubGlobal('fetch', fetch)
