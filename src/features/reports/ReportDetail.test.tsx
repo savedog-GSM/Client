@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { report } from '../../test/fixtures'
-import { ReportDetail } from './ReportsPage'
+import ReportDetail from './ReportDetail'
 
 const robot = vi.hoisted(() => ({
   api: { report: vi.fn(), submit: vi.fn(), dismiss: vi.fn(), photo: vi.fn() },
