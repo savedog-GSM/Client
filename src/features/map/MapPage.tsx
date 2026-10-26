@@ -175,7 +175,6 @@ export default function MapPage() {
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
           <ErrorNotice message={error} />
-          )}
           <p className="muted">
             {demo
               ? '시연용 예시 경로입니다.'
