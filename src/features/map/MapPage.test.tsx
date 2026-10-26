@@ -7,9 +7,11 @@ import { status } from '../../test/fixtures'
 import MapPage from './MapPage'
 import { searchLocations } from './searchLocations'
 import { reverseGeocode } from './reverseGeocode'
+import { searchWalkingRoute } from './walkingRoute'
 
 vi.mock('./searchLocations', () => ({ searchLocations: vi.fn() }))
 vi.mock('./reverseGeocode', () => ({ reverseGeocode: vi.fn() }))
+vi.mock('./walkingRoute', () => ({ searchWalkingRoute: vi.fn() }))
 
 const robot = vi.hoisted(() => ({
   api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn() },
@@ -35,6 +37,7 @@ vi.mock('./SafetyMap', () => ({
 }))
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(searchWalkingRoute).mockReset()
   robot.api.segments.mockResolvedValue([])
   robot.getCurrentPosition.mockReset()
   vi.mocked(searchLocations).mockReset()
@@ -47,6 +50,46 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
+it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 경로와 시간을 표시한다', async () => {
+  vi.mocked(searchWalkingRoute).mockResolvedValue({
+    provider: 'KAKAO',
+    path: [
+      { latitude: 37.5, longitude: 127 },
+      { latitude: 37.6, longitude: 127.1 },
+    ],
+    distanceMeters: 1200,
+    durationSeconds: 900,
+    steps: [{ instruction: '횡단보도를 건너세요', distanceMeters: 100 }],
+  })
+  render(<MapPage />)
+  expect(screen.getByRole('radio', { name: '카카오 도보' }).getAttribute('checked')).not.toBeNull()
+  expect(screen.queryByRole('combobox', { name: '탐색 방식' })).toBeNull()
+  await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
+  await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
+  await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
+  expect(searchWalkingRoute).toHaveBeenCalledWith(
+    { latitude: 37.5, longitude: 127 },
+    { latitude: 37.6, longitude: 127.1 },
+    expect.any(AbortSignal),
+  )
+  expect(robot.api.searchPath).not.toHaveBeenCalled()
+  expect(robot.api.segments).not.toHaveBeenCalled()
+  expect(await screen.findByText('약 15분')).toBeTruthy()
+  expect(screen.getByText('횡단보도를 건너세요')).toBeTruthy()
+  expect(screen.queryByText('평균 위험도')).toBeNull()
+})
+
+it('도보 키 설정이 없으면 안내하고 경로를 만들어 표시하지 않는다', async () => {
+  vi.mocked(searchWalkingRoute).mockRejectedValue(
+    new ApiError(503, 'WALKING_NOT_CONFIGURED', '카카오 도보 길찾기 연결 설정이 필요합니다.'),
+  )
+  render(<MapPage />)
+  await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
+  await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
+  await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('연결 설정이 필요')
+  expect(screen.queryByText('총 거리')).toBeNull()
+})
 it('지도에서 선택한 출발지와 도착지를 좌표 대신 주소로 표시한다', async () => {
   vi.mocked(reverseGeocode)
     .mockResolvedValueOnce('서울 출발 도로명 1')
@@ -114,6 +157,7 @@ it('현재 위치를 출발지로, 검색한 주소를 도착지로 설정한다
     maxRiskLevel: 'SAFE',
   })
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: '수집 경로' }))
   await userEvent.click(screen.getByRole('button', { name: '현재 위치에서 출발' }))
   await userEvent.type(screen.getByLabelText('도착지 주소'), '광주역')
   await userEvent.click(screen.getByRole('button', { name: '도착지 주소 검색' }))
@@ -191,6 +235,7 @@ it('출발과 도착을 선택한 후 서버의 안전 경로를 요청한다', 
     maxRiskLevel: 'SAFE',
   })
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: '수집 경로' }))
   const search = screen.getByRole('button', { name: '경로 찾기' }) as HTMLButtonElement
   expect(search.disabled).toBe(true)
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
@@ -213,6 +258,7 @@ it('수집된 길이 없어 경로를 못 찾으면 서버의 안내를 표시�
     new ApiError(404, 'PATH_NOT_FOUND', '경로를 찾지 못했습니다.'),
   )
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: '수집 경로' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))

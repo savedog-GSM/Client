@@ -1100,3 +1100,31 @@ button[aria-pressed='true'] {
     padding: 24px;
   }
 }
+.route-source {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  padding: 14px;
+}
+.route-source label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.route-source input {
+  width: auto;
+}
+.walking-steps {
+  padding-left: 22px;
+}
+.walking-steps li {
+  margin: 14px 0;
+}
+.walking-steps small {
+  display: block;
+  color: #738097;
+  margin-top: 4px;
+}
