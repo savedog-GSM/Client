@@ -70,6 +70,8 @@ export interface Report extends Point {
   submittedAt: string | null
 }
 export interface DangerAlert {
+  source?: 'sensor' | 'server'
+  receivedAt?: number
   message: string
   robotStopped: boolean
   telemetry: Telemetry

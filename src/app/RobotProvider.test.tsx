@@ -18,12 +18,97 @@ function Status() {
       <output data-testid="robot">{JSON.stringify(robot.status)}</output>
       <output data-testid="reports">{JSON.stringify(robot.reports)}</output>
       <output data-testid="alerts">{robot.alerts.length}</output>
+      <output data-testid="alert-data">{JSON.stringify(robot.alerts)}</output>
+      <output data-testid="stream-error">{robot.streamError}</output>
     </>
   )
 }
 beforeEach(() => {
   stream.handlers = null
   stream.stop.mockClear()
+})
+
+it('주의 전환을 한 번 기록하고 안전 복귀 후 재발한 주의를 새로 기록한다', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) =>
+      Promise.resolve(new Response(JSON.stringify(url.endsWith('/status') ? status : []))),
+    ),
+  )
+  render(
+    <RobotProvider settings={settings}>
+      <Status />
+    </RobotProvider>,
+  )
+  await waitFor(() => expect(screen.getByTestId('robot').textContent).toContain('true'))
+  const caution = {
+    ...telemetry,
+    risk: { level: 'CAUTION' as const, score: 3, reason: '카메라: 전방 자전거' },
+  }
+  act(() => {
+    stream.handlers!.telemetry(caution)
+    stream.handlers!.telemetry({ ...caution, id: caution.id + 1 })
+  })
+  expect(screen.getByTestId('alerts').textContent).toBe('1')
+  expect(JSON.parse(screen.getByTestId('alert-data').textContent!)[0]).toMatchObject({
+    source: 'sensor',
+    robotStopped: false,
+  })
+  act(() => {
+    stream.handlers!.telemetry({
+      ...caution,
+      id: caution.id + 2,
+      risk: { level: 'SAFE', score: 1, reason: null },
+    })
+    stream.handlers!.telemetry({ ...caution, id: caution.id + 3 })
+  })
+  expect(screen.getByTestId('alerts').textContent).toBe('2')
+})
+
+it('센서 위험 알림을 같은 센서의 서버 정지 결과로 교체한다', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) =>
+      Promise.resolve(new Response(JSON.stringify(url.endsWith('/status') ? status : []))),
+    ),
+  )
+  render(
+    <RobotProvider settings={settings}>
+      <Status />
+    </RobotProvider>,
+  )
+  await waitFor(() => expect(screen.getByTestId('robot').textContent).toContain('true'))
+  act(() => stream.handlers!.telemetry(telemetry))
+  expect(screen.getByTestId('alerts').textContent).toBe('1')
+  act(() => stream.handlers!.alert({ telemetry, message: '정지 명령 전송', robotStopped: true }))
+  expect(screen.getByTestId('alerts').textContent).toBe('1')
+  expect(JSON.parse(screen.getByTestId('alert-data').textContent!)[0]).toMatchObject({
+    source: 'server',
+    robotStopped: true,
+    message: '정지 명령 전송',
+  })
+})
+
+it('인증 오류 사유는 연결 종료 후에도 보존하고 재연결 성공 시 지운다', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) =>
+      Promise.resolve(new Response(JSON.stringify(url.endsWith('/status') ? status : []))),
+    ),
+  )
+  render(
+    <RobotProvider settings={settings}>
+      <Status />
+    </RobotProvider>,
+  )
+  await waitFor(() => expect(stream.handlers).not.toBeNull())
+  act(() => {
+    stream.handlers!.state('error', '관제 토큰을 확인해주세요.')
+    stream.handlers!.state('disconnected')
+  })
+  expect(screen.getByTestId('stream-error').textContent).toContain('관제 토큰')
+  act(() => stream.handlers!.state('connected'))
+  expect(screen.getByTestId('stream-error').textContent).toBe('')
 })
 afterEach(() => vi.unstubAllGlobals())
 it('늦게 도착한 초기 조회가 새 실시간 센서 값을 덮어쓰지 않는다', async () => {

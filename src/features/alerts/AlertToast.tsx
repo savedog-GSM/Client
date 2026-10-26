@@ -38,7 +38,7 @@ export default function AlertToast() {
       }
       if (lastAlertId.current === alert.telemetry.id) return
       lastAlertId.current = alert.telemetry.id
-      if (Date.now() - Date.parse(alert.telemetry.recordedAt) >= 3000) return
+      if (Date.now() - (alert.receivedAt ?? Date.parse(alert.telemetry.recordedAt)) >= 3000) return
       setLeaving(false)
       setToast({
         key: `alert-${alert.telemetry.id}`,

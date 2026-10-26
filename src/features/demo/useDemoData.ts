@@ -18,6 +18,8 @@ export function useDemoData(scenario: string) {
     api: session.api,
     demo: true,
     stream: 'connected' as const,
+    streamError: '',
+    lastTelemetryReceivedAt: snapshot.now,
     statusError: '',
     reportsError: '',
     reportsLoading: false,
