@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Point, WalkingRoute } from '../../api/types'
+import { useCallback, useMemo, useState } from 'react'
+import type { Point } from '../../api/types'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle } from '../../components/ui'
 import ExpandableMap from './ExpandableMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
-import { demoPosition } from '../demo/session'
-import { searchWalkingRoute } from './walkingRoute'
-import { routeErrorMessage } from './routeErrors'
 import { kakaoRouteUrl } from './kakaoRouteUrl'
+
+import { useCurrentPosition } from './useCurrentPosition'
+import { useWalkingRoute } from './useWalkingRoute'
 
 const emptyOverlays = { segments: [], records: [] }
 const ignoreBounds = () => {}
@@ -23,62 +23,12 @@ export default function MapPage() {
   const [endAddress, setEndAddress] = useState('')
   const [focus, setFocus] = useState<Point | null>(null)
   const [selecting, setSelecting] = useState<'start' | 'end'>('start')
-  const [route, setRoute] = useState<WalkingRoute | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [currentPosition, setCurrentPosition] = useState<Point | null>(null)
-  const [positionAccuracy, setPositionAccuracy] = useState<number | null>(null)
-  const [locating, setLocating] = useState(true)
-  const [locationRevision, setLocationRevision] = useState(0)
-  const [locationMessage, setLocationMessage] = useState('현재 위치를 확인하고 있습니다.')
-  const searchRevision = useRef(0)
-  const routeRequest = useRef<AbortController | null>(null)
-  useEffect(() => () => routeRequest.current?.abort(), [])
-  useEffect(() => {
-    if (demo) {
-      setCurrentPosition(demoPosition)
-      setPositionAccuracy(3)
-      setLocating(false)
-      setLocationMessage(
-        '시연용 위치를 표시합니다. 경로는 실제 보행 안내에 사용할 수 없는 예시입니다.',
-      )
-      return
-    }
-    setCurrentPosition(null)
-    setPositionAccuracy(null)
-    setLocating(true)
-    setLocationMessage('현재 위치를 확인하고 있습니다.')
-    if (!navigator.geolocation) {
-      setLocationMessage('현재 위치를 지원하지 않는 브라우저입니다. 기본 위치로 표시합니다.')
-      setLocating(false)
-      return
-    }
-    let active = true
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        if (!active) return
-        const point = { latitude: coords.latitude, longitude: coords.longitude }
-        setCurrentPosition(point)
-        setPositionAccuracy(Number.isFinite(coords.accuracy) ? coords.accuracy : null)
-        setLocating(false)
-        if (locationRevision > 0) setFocus((previous) => previous ?? point)
-        setLocationMessage('현재 위치를 기준으로 지도를 표시합니다.')
-      },
-      (error) => {
-        if (!active) return
-        setLocating(false)
-        setLocationMessage(
-          error.code === 1
-            ? '위치 권한이 거부되었습니다. 기본 위치로 표시합니다. 브라우저 설정에서 위치를 허용해주세요.'
-            : '현재 위치를 확인하지 못했습니다. 기본 위치로 표시합니다.',
-        )
-      },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
-    )
-    return () => {
-      active = false
-    }
-  }, [locationRevision, demo])
+  const { route, loading, error, search, invalidateRoute } = useWalkingRoute(api, demo)
+  const focusCurrentPosition = useCallback((point: Point) => {
+    setFocus((previous) => previous ?? point)
+  }, [])
+  const { currentPosition, positionAccuracy, locating, locationMessage, refreshPosition } =
+    useCurrentPosition(demo, focusCurrentPosition)
   const position = useMemo(
     () =>
       status.latitude == null || status.longitude == null
@@ -86,13 +36,6 @@ export default function MapPage() {
         : { latitude: status.latitude, longitude: status.longitude },
     [status.latitude, status.longitude],
   )
-  function invalidateRoute() {
-    routeRequest.current?.abort()
-    searchRevision.current++
-    setRoute(null)
-    setError('')
-    setLoading(false)
-  }
   const selectPoint = (point: Point) => {
     invalidateRoute()
     if (selecting === 'start') {
@@ -102,44 +45,6 @@ export default function MapPage() {
     } else {
       setEnd(point)
       setEndAddress('지도에서 선택한 위치')
-    }
-  }
-  async function search() {
-    if (!start || !end) return
-    const currentSearch = ++searchRevision.current
-    routeRequest.current?.abort()
-    const controller = new AbortController()
-    routeRequest.current = controller
-    setLoading(true)
-    setError('')
-    setRoute(null)
-    try {
-      let result: WalkingRoute
-      if (!demo) {
-        result = await searchWalkingRoute(
-          start,
-          end,
-          AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
-        )
-      } else {
-        const collected = await api.searchPath(
-          { latitude: start.latitude, longitude: start.longitude },
-          { latitude: end.latitude, longitude: end.longitude },
-          'SAFEST',
-        )
-        result = {
-          provider: 'KAKAO',
-          path: collected.path,
-          distanceMeters: collected.distanceMeters,
-          durationSeconds: Math.ceil(collected.distanceMeters / 1.2),
-          steps: [],
-        }
-      }
-      if (currentSearch === searchRevision.current) setRoute(result)
-    } catch (error) {
-      if (currentSearch === searchRevision.current) setError(routeErrorMessage(error))
-    } finally {
-      if (currentSearch === searchRevision.current) setLoading(false)
     }
   }
   return (
@@ -187,7 +92,7 @@ export default function MapPage() {
                 setStartAddress('')
               }
               setFocus(null)
-              setLocationRevision((value) => value + 1)
+              refreshPosition()
             }}
           >
             {locating ? '위치 확인 중…' : '현재 위치 다시 확인'}
@@ -265,7 +170,7 @@ export default function MapPage() {
           <button
             className="primary full-width"
             disabled={!start || !end || loading}
-            onClick={() => void search()}
+            onClick={() => void search(start, end)}
           >
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
