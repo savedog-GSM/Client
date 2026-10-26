@@ -3,7 +3,7 @@ import type { ConnectionSettings, DangerAlert, Report, Telemetry } from './types
 
 export type StreamState = 'connecting' | 'connected' | 'disconnected' | 'error'
 export interface StreamHandlers {
-  state: (state: StreamState) => void
+  state: (state: StreamState, message?: string) => void
   ready: () => void
   telemetry: (value: Telemetry) => void
   status: (value: { connected: boolean; occurredAt: string }) => void
@@ -28,7 +28,10 @@ export function connectStream(settings: ConnectionSettings, handlers: StreamHand
           try {
             receive(JSON.parse(message.body) as T)
           } catch {
-            handlers.state('error')
+            handlers.state(
+              'error',
+              '실시간 데이터 형식을 읽지 못했습니다. 서버 응답을 확인해주세요.',
+            )
           }
         })
       subscribe('/topic/robot/telemetry', handlers.telemetry)
@@ -39,8 +42,16 @@ export function connectStream(settings: ConnectionSettings, handlers: StreamHand
       handlers.ready()
     },
     onWebSocketClose: () => handlers.state('disconnected'),
-    onWebSocketError: () => handlers.state('error'),
-    onStompError: () => handlers.state('error'),
+    onWebSocketError: () =>
+      handlers.state(
+        'error',
+        '실시간 서버에 연결할 수 없습니다. 서버 주소·네트워크·허용 출처를 확인해주세요.',
+      ),
+    onStompError: () =>
+      handlers.state(
+        'error',
+        '실시간 인증 또는 구독이 거부되었습니다. 연결 설정의 관제 토큰을 확인해주세요.',
+      ),
   })
   handlers.state('connecting')
   client.activate()
