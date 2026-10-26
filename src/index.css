@@ -1100,3 +1100,15 @@ button[aria-pressed='true'] {
     padding: 24px;
   }
 }
+.route-external {
+  margin-top: 16px;
+}
+.route-external a {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  text-align: center;
+  color: #284b78;
+  font-weight: 600;
+}

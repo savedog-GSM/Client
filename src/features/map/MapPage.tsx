@@ -9,6 +9,8 @@ import ExpandableMap from './ExpandableMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
 import { demoPosition } from '../demo/session'
+import { routeErrorMessage } from './routeErrors'
+import { kakaoRouteUrl } from './kakaoRouteUrl'
 
 export default function MapPage() {
   const { api, status, history, reports, demo } = useRobot()
@@ -173,7 +175,7 @@ export default function MapPage() {
       )
       if (currentSearch === searchRevision.current) setRoute(result)
     } catch (error) {
-      if (currentSearch === searchRevision.current) setError(errorMessage(error))
+      if (currentSearch === searchRevision.current) setError(routeErrorMessage(error))
     } finally {
       if (currentSearch === searchRevision.current) setLoading(false)
     }
@@ -240,7 +242,7 @@ export default function MapPage() {
         </section>
         <aside className="panel">
           <h2>경로 탐색</h2>
-          <p>수집된 길 안에서 경로를 탐색합니다.</p>
+          <p>로보독이 실제로 수집한 길 안에서만 탐색합니다. 일반 도로 전체를 검색하지 않습니다.</p>
           <AddressSearch
             label="출발지 주소"
             value={start ? startLabel : startAddress}
@@ -321,6 +323,16 @@ export default function MapPage() {
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
           <ErrorNotice message={error} />
+          {start && end && !demo && (
+            <div className="route-external">
+              <a href={kakaoRouteUrl(start, end)} target="_blank" rel="noopener noreferrer">
+                카카오맵 도보 길찾기 열기 ↗
+              </a>
+              <p className="muted">
+                새 창에서 일반 보행 경로를 확인합니다. 로보독의 위험도 기록은 반영되지 않습니다.
+              </p>
+            </div>
+          )}
           {route && (
             <dl className="details">
               <div>
