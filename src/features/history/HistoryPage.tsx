@@ -3,6 +3,7 @@ import type { Telemetry } from '../../api/types'
 import { errorMessage } from '../../api/client'
 import { useRobot } from '../../app/RobotProvider'
 import { Empty, ErrorNotice, number, PageTitle, RiskBadge, time } from '../../components/ui'
+import HistoryLocation from './HistoryLocation'
 
 export default function HistoryPage() {
   const { api } = useRobot()
@@ -82,6 +83,7 @@ export default function HistoryPage() {
         message={error}
         retry={() => setQuery({ ...query, revision: query.revision + 1 })}
       />
+      <HistoryLocation api={api} />
       <section className="panel">
         <div className="section-heading">
           <h2>센서 기록 · 최신순</h2>
@@ -99,7 +101,8 @@ export default function HistoryPage() {
                     <th>거리</th>
                     <th>Roll / Pitch</th>
                     <th>위험도</th>
-                    <th>좌표</th>
+                    <th>위도</th>
+                    <th>경도</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,11 +116,8 @@ export default function HistoryPage() {
                       <td>
                         <RiskBadge risk={record.risk} />
                       </td>
-                      <td>
-                        {record.latitude == null || record.longitude == null
-                          ? '위치 없음'
-                          : `${record.latitude.toFixed(5)}, ${record.longitude.toFixed(5)}`}
-                      </td>
+                      <td>{record.latitude?.toFixed(6) ?? '수신 당시 위치 없음'}</td>
+                      <td>{record.longitude?.toFixed(6) ?? '수신 당시 위치 없음'}</td>
                     </tr>
                   ))}
                 </tbody>

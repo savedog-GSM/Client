@@ -1141,3 +1141,10 @@ button[aria-pressed='true'] {
   color: #284b78;
   font-weight: 600;
 }
+.history-location {
+  margin-bottom: 20px;
+}
+.history-location .section-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
