@@ -49,6 +49,13 @@ export interface PathResult {
   averageRiskScore: number
   maxRiskLevel: RiskLevel
 }
+export interface WalkingRoute {
+  provider: 'KAKAO'
+  path: Point[]
+  distanceMeters: number
+  durationSeconds: number
+  steps: { instruction: string; distanceMeters: number }[]
+}
 export type CommandType =
   'STOP' | 'BARK' | 'SIT' | 'FORWARD' | 'BACKWARD' | 'TURN_LEFT' | 'TURN_RIGHT'
 export interface Command {

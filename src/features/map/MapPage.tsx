@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { errorMessage } from '../../api/client'
-import type { PathMode, PathResult, Point, SafetyRecord, Segment } from '../../api/types'
+import type {
+  PathMode,
+  PathResult,
+  Point,
+  SafetyRecord,
+  Segment,
+  WalkingRoute,
+} from '../../api/types'
 import RouteModeSelect from './RouteModeSelect'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, number, PageTitle, riskNames } from '../../components/ui'
@@ -9,6 +16,7 @@ import ExpandableMap from './ExpandableMap'
 import AddressSearch from './AddressSearch'
 import { usePointAddress, type AddressPoint } from './usePointAddress'
 import { demoPosition } from '../demo/session'
+import { searchWalkingRoute } from './walkingRoute'
 import { routeErrorMessage } from './routeErrors'
 import { kakaoRouteUrl } from './kakaoRouteUrl'
 
@@ -26,7 +34,8 @@ export default function MapPage() {
   const [focus, setFocus] = useState<Point | null>(null)
   const [selecting, setSelecting] = useState<'start' | 'end'>('start')
   const [mode, setMode] = useState<PathMode>('SAFEST')
-  const [route, setRoute] = useState<PathResult | null>(null)
+  const [routeSource, setRouteSource] = useState<'KAKAO' | 'COLLECTED'>('KAKAO')
+  const [route, setRoute] = useState<PathResult | WalkingRoute | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [mapError, setMapError] = useState('')
@@ -38,6 +47,8 @@ export default function MapPage() {
   const [locationMessage, setLocationMessage] = useState('현재 위치를 확인하고 있습니다.')
   const [revision, setRevision] = useState(0)
   const searchRevision = useRef(0)
+  const routeRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => routeRequest.current?.abort(), [])
   const onBounds = useCallback((value: Bounds) => setBounds(value), [])
   useEffect(() => {
     if (demo) {
@@ -85,8 +96,12 @@ export default function MapPage() {
     }
   }, [locationRevision, demo])
   useEffect(() => {
-    const controller = new AbortController()
     setMapError('')
+    if (routeSource !== 'COLLECTED') {
+      setSegments([])
+      return
+    }
+    const controller = new AbortController()
     api
       .segments(controller.signal)
       .then(setSegments)
@@ -94,9 +109,13 @@ export default function MapPage() {
         if (!controller.signal.aborted) setMapError(errorMessage(error))
       })
     return () => controller.abort()
-  }, [api, revision])
+  }, [api, revision, routeSource])
   useEffect(() => {
-    if (!bounds) return
+    if (!bounds || routeSource !== 'COLLECTED') {
+      setRecords([])
+      setRecordsError('')
+      return
+    }
     const controller = new AbortController()
     const timer = setTimeout(() => {
       api
@@ -113,7 +132,7 @@ export default function MapPage() {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [api, bounds, revision])
+  }, [api, bounds, revision, routeSource])
   const position = useMemo(
     () =>
       status.latitude == null || status.longitude == null
@@ -145,6 +164,7 @@ export default function MapPage() {
     return [...segments, ...recent]
   }, [segments, history])
   function invalidateRoute() {
+    routeRequest.current?.abort()
     searchRevision.current++
     setRoute(null)
     setError('')
@@ -164,15 +184,37 @@ export default function MapPage() {
   async function search() {
     if (!start || !end) return
     const currentSearch = ++searchRevision.current
+    routeRequest.current?.abort()
+    const controller = new AbortController()
+    routeRequest.current = controller
     setLoading(true)
     setError('')
     setRoute(null)
     try {
-      const result = await api.searchPath(
-        { latitude: start.latitude, longitude: start.longitude },
-        { latitude: end.latitude, longitude: end.longitude },
-        mode,
-      )
+      let result: PathResult | WalkingRoute
+      if (routeSource === 'KAKAO' && !demo) {
+        result = await searchWalkingRoute(
+          start,
+          end,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+        )
+      } else {
+        const collected = await api.searchPath(
+          { latitude: start.latitude, longitude: start.longitude },
+          { latitude: end.latitude, longitude: end.longitude },
+          mode,
+        )
+        result =
+          routeSource === 'KAKAO'
+            ? {
+                provider: 'KAKAO',
+                path: collected.path,
+                distanceMeters: collected.distanceMeters,
+                durationSeconds: Math.ceil(collected.distanceMeters / 1.2),
+                steps: [],
+              }
+            : collected
+      }
       if (currentSearch === searchRevision.current) setRoute(result)
     } catch (error) {
       if (currentSearch === searchRevision.current) setError(routeErrorMessage(error))
@@ -183,18 +225,22 @@ export default function MapPage() {
   return (
     <>
       <PageTitle
-        title="안전 지도"
-        description="로보독이 지나간 길의 위험도와 안전한 이동 경로를 확인하세요."
+        title="도보 길찾기"
+        description="카카오 도보 경로와 로보독이 수집한 길을 구분해 확인하세요."
         action={<button onClick={() => setRevision(revision + 1)}>지도 데이터 새로고침</button>}
       />
       <ErrorNotice message={mapError || recordsError} retry={() => setRevision(revision + 1)} />
       <div className="map-layout">
         <section className="panel map-panel">
           <div className="map-legend">
-            <span className="safe">● 안전</span>
-            <span className="caution">● 주의</span>
-            <span className="danger">● 위험</span>
-            <span>● 보라색: 탐색 경로</span>
+            {routeSource === 'COLLECTED' && (
+              <>
+                <span className="safe">● 안전</span>
+                <span className="caution">● 주의</span>
+                <span className="danger">● 위험</span>
+              </>
+            )}
+            <span>● 보라색: {routeSource === 'KAKAO' ? '카카오 도보 경로' : '수집 경로'}</span>
           </div>
           <ExpandableMap
             focus={focus}
@@ -203,7 +249,7 @@ export default function MapPage() {
             position={position}
             start={start}
             end={end}
-            segments={liveSegments}
+            segments={routeSource === 'COLLECTED' ? liveSegments : []}
             reports={reports}
             records={records}
             route={route}
@@ -242,7 +288,38 @@ export default function MapPage() {
         </section>
         <aside className="panel">
           <h2>경로 탐색</h2>
-          <p>로보독이 실제로 수집한 길 안에서만 탐색합니다. 일반 도로 전체를 검색하지 않습니다.</p>
+          <fieldset className="route-source">
+            <legend>길찾기 종류</legend>
+            <label>
+              <input
+                type="radio"
+                name="route-source"
+                checked={routeSource === 'KAKAO'}
+                onChange={() => {
+                  invalidateRoute()
+                  setRouteSource('KAKAO')
+                }}
+              />
+              카카오 도보
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="route-source"
+                checked={routeSource === 'COLLECTED'}
+                onChange={() => {
+                  invalidateRoute()
+                  setRouteSource('COLLECTED')
+                }}
+              />
+              수집 경로
+            </label>
+          </fieldset>
+          <p>
+            {routeSource === 'KAKAO'
+              ? '일반 보행 도로에서 도보 경로를 찾습니다.'
+              : '로보독이 실제로 수집한 길 안에서만 탐색합니다.'}
+          </p>
           <AddressSearch
             label="출발지 주소"
             value={start ? startLabel : startAddress}
@@ -305,16 +382,20 @@ export default function MapPage() {
               <small>{end ? endLabel : '지도를 눌러 선택'}</small>
             </button>
           </div>
-          <RouteModeSelect
-            value={mode}
-            onChange={(value) => {
-              invalidateRoute()
-              setMode(value)
-            }}
-          />
-          <p className="muted">
-            안전 우선은 위험 구간을 피합니다. 최단 거리는 위험도를 고려하지 않습니다.
-          </p>
+          {routeSource === 'COLLECTED' && (
+            <>
+              <RouteModeSelect
+                value={mode}
+                onChange={(value) => {
+                  invalidateRoute()
+                  setMode(value)
+                }}
+              />
+              <p className="muted">
+                안전 우선은 위험 구간을 피합니다. 최단 거리는 위험도를 고려하지 않습니다.
+              </p>
+            </>
+          )}
           <button
             className="primary full-width"
             disabled={!start || !end || loading}
@@ -339,19 +420,41 @@ export default function MapPage() {
                 <dt>총 거리</dt>
                 <dd>{number(route.distanceMeters, ' m')}</dd>
               </div>
-              <div>
-                <dt>평균 위험도</dt>
-                <dd>{number(route.averageRiskScore)} / 5</dd>
-              </div>
-              <div>
-                <dt>최고 위험 등급</dt>
-                <dd>{riskNames[route.maxRiskLevel]}</dd>
-              </div>
+              {'provider' in route ? (
+                <div>
+                  <dt>{demo ? '예상 시간 (시연용)' : '예상 도보 시간'}</dt>
+                  <dd>약 {Math.ceil(route.durationSeconds / 60)}분</dd>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <dt>평균 위험도</dt>
+                    <dd>{number(route.averageRiskScore)} / 5</dd>
+                  </div>
+                  <div>
+                    <dt>최고 위험 등급</dt>
+                    <dd>{riskNames[route.maxRiskLevel]}</dd>
+                  </div>
+                </>
+              )}
             </dl>
           )}
+          {route && 'provider' in route && route.steps.length > 0 && (
+            <ol className="walking-steps">
+              {route.steps.map((step, index) => (
+                <li key={index}>
+                  <span>{step.instruction}</span>
+                  <small>{number(step.distanceMeters, ' m')}</small>
+                </li>
+              ))}
+            </ol>
+          )}
           <p className="muted">
-            출발·도착지는 30m 안의 수집 지점에 연결됩니다. 길이 충분히 수집되지 않았으면 경로가 없을
-            수 있습니다.
+            {routeSource === 'KAKAO'
+              ? demo
+                ? '시연용 예시 경로입니다. 실제 카카오 경로를 조회하지 않습니다.'
+                : '카카오 도보 경로에는 로보독의 위험도 기록이 반영되지 않습니다.'
+              : '출발·도착지는 30m 안의 수집 지점에 연결됩니다. 연결된 기록이 없으면 경로를 찾을 수 없습니다.'}
           </p>
         </aside>
       </div>
