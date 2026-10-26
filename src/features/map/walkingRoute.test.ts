@@ -35,17 +35,15 @@ it('배포되지 않은 함수가 HTML을 반환하면 경로로 취급하지 �
 it('키가 없으면 함수의 설정 안내를 표시한다', async () => {
   vi.stubGlobal(
     'fetch',
-    vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            code: 'WALKING_NOT_CONFIGURED',
-            message: '카카오 도보 길찾기 연결 설정이 필요합니다.',
-          }),
-          { status: 503 },
-        ),
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: 'WALKING_NOT_CONFIGURED',
+          message: '카카오 도보 길찾기 연결 설정이 필요합니다.',
+        }),
+        { status: 503 },
       ),
+    ),
   )
   await expect(searchWalkingRoute(start, end, new AbortController().signal)).rejects.toMatchObject({
     code: 'WALKING_NOT_CONFIGURED',
