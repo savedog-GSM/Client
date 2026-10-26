@@ -40,6 +40,25 @@ it('알림은 3초 뒤 사라지고 센서가 계속 갱신되어도 다시 뜨�
   expect(screen.queryByRole('alert')).toBeNull()
 })
 
+it('서버 시각이 달라도 방금 수신한 알림은 표시한다', () => {
+  robot.alerts = [
+    {
+      ...alert(3),
+      receivedAt: Date.now(),
+      telemetry: { ...alert(3).telemetry, recordedAt: '2026-01-01T00:00:00' },
+    },
+  ]
+  render(<AlertToast />)
+  expect(screen.getByRole('alert').textContent).toContain('알림 3')
+})
+
+it('센서 알림만 받은 경우 정지 명령 실패로 표시하지 않는다', () => {
+  robot.alerts = [{ ...alert(3), source: 'sensor', robotStopped: false }]
+  render(<AlertToast />)
+  expect(screen.getByRole('alert').textContent).toContain('센서 상태 알림')
+  expect(screen.getByRole('alert').textContent).not.toContain('보내지 못했습니다')
+})
+
 it('안전으로 바꾸면 즉시 닫고 기존 알림 기록은 유지한다', () => {
   const view = render(<AlertToast />)
   robot.status = { ...robot.status, risk: { level: 'SAFE', score: 1, reason: null } }

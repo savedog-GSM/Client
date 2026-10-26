@@ -10,6 +10,7 @@ import {
 import { createApi, errorMessage } from '../api/client'
 import { connectStream, type StreamState } from '../api/realtime'
 import type { ConnectionSettings, DangerAlert, Report, RobotStatus, Telemetry } from '../api/types'
+import type { RiskLevel } from '../api/types'
 import { useDemoData } from '../features/demo/useDemoData'
 
 export const initialStatus: RobotStatus = {
@@ -27,6 +28,8 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
   const api = useMemo(() => createApi(settings), [settings])
   const [status, setStatus] = useState(initialStatus)
   const [stream, setStream] = useState<StreamState>('connecting')
+  const [streamError, setStreamError] = useState('')
+  const [lastTelemetryReceivedAt, setLastTelemetryReceivedAt] = useState<number | null>(null)
   const [statusError, setStatusError] = useState('')
   const [reports, setReports] = useState<Report[]>([])
   const [reportsError, setReportsError] = useState('')
@@ -54,11 +57,24 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
     let active = true
     let telemetryRevision = 0
     let connectionRevision = 0
+    let lastRiskLevel: RiskLevel | null = null
+    const addAlert = (value: DangerAlert) => {
+      setAlerts((current) => {
+        const previous = current.find((item) => item.telemetry.id === value.telemetry.id)
+        if (previous && (value.source === 'sensor' || previous.source !== 'sensor')) return current
+        return [
+          { ...value, receivedAt: Date.now() },
+          ...current.filter((item) => item.telemetry.id !== value.telemetry.id),
+        ].slice(0, 100)
+      })
+    }
     const changedReports = new Set<number>()
     let requestNumber = 0
     setStatus(initialStatus)
     setHistory([])
     setAlerts([])
+    setStreamError('')
+    setLastTelemetryReceivedAt(null)
     setReports([])
     const sync = async () => {
       const currentRequest = ++requestNumber
@@ -103,8 +119,10 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
     }
     void sync()
     const stop = connectStream(settings, {
-      state: (value) => {
-        if (active) setStream(value)
+      state: (value, message) => {
+        if (!active) return
+        setStream(value)
+        setStreamError((previous) => (value === 'connected' ? '' : message || previous))
       },
       ready: () => {
         if (active) void sync()
@@ -112,6 +130,21 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
       telemetry: (value) => {
         if (!active) return
         telemetryRevision++
+        setLastTelemetryReceivedAt(Date.now())
+        const risk = value.risk
+        if (risk && risk.level !== lastRiskLevel && risk.level !== 'SAFE') {
+          addAlert({
+            source: 'sensor',
+            message:
+              risk.reason ||
+              (risk.level === 'DANGER'
+                ? '위험 상태가 감지되었습니다. 주변을 확인해주세요.'
+                : '주의가 필요한 상태입니다. 주변 장애물을 확인해주세요.'),
+            robotStopped: false,
+            telemetry: value,
+          })
+        }
+        lastRiskLevel = risk?.level ?? null
         setStatus((current) => ({
           ...current,
           ...value,
@@ -138,11 +171,7 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
       },
       alert: (value) => {
         if (!active) return
-        setAlerts((current) =>
-          current.some((item) => item.telemetry.id === value.telemetry.id)
-            ? current
-            : [value, ...current].slice(0, 100),
-        )
+        addAlert({ ...value, source: 'server' })
       },
     })
     return () => {
@@ -158,6 +187,8 @@ function useRobotData(settings: ConnectionSettings, enabled = true) {
     api,
     status,
     stream,
+    streamError,
+    lastTelemetryReceivedAt,
     statusError,
     reports,
     reportsError,

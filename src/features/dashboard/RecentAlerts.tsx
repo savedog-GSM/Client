@@ -4,7 +4,7 @@ import { Empty, riskNames } from '../../components/ui'
 import { clockTime } from './clockTime'
 
 export default function RecentAlerts() {
-  const { alerts } = useRobot()
+  const { alerts, stream, streamError, lastTelemetryReceivedAt, now } = useRobot()
   return (
     <section className="dashboard-alerts panel">
       <div className="dashboard-panel-heading">
@@ -14,6 +14,16 @@ export default function RecentAlerts() {
         </div>
         <Link to="/alerts">전체 보기 →</Link>
       </div>
+      <p className="alerts-history-note" role="status">
+        {stream === 'connected'
+          ? lastTelemetryReceivedAt && now - lastTelemetryReceivedAt <= 5000
+            ? '센서 수신 중 · 주의·위험 상태로 바뀌면 알림을 표시합니다.'
+            : '실시간 연결됨 · 센서 수신 대기 중입니다. 중계 프로그램의 센서 전송을 확인해주세요.'
+          : streamError ||
+            (stream === 'connecting'
+              ? '실시간 알림 서버에 연결하고 있습니다.'
+              : '실시간 연결이 끊겼습니다. 서버 주소와 관제 토큰을 확인해주세요.')}
+      </p>
       {alerts.length ? (
         <>
           <p className="alerts-history-note">

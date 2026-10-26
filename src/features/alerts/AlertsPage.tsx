@@ -14,7 +14,7 @@ export default function AlertsPage() {
         {alerts.length ? (
           alerts.map((alert) => (
             <article
-              className={`alert-row ${alert.telemetry.risk.level === 'DANGER' && !alert.robotStopped ? 'urgent-text' : ''}`}
+              className={`alert-row ${alert.source !== 'sensor' && alert.telemetry.risk.level === 'DANGER' && !alert.robotStopped ? 'urgent-text' : ''}`}
               key={alert.telemetry.id}
             >
               <div className="section-heading">
@@ -26,9 +26,11 @@ export default function AlertsPage() {
               <small>
                 {alert.telemetry.risk.level === 'CAUTION'
                   ? '주변 장애물과 이동 경로를 확인해주세요.'
-                  : alert.robotStopped
-                    ? '실제 정지 여부를 확인해주세요.'
-                    : '로보독 연결과 주변 상황을 즉시 확인해주세요.'}
+                  : alert.source === 'sensor'
+                    ? '센서 상태를 기준으로 표시한 알림입니다. 자동 정지 여부는 서버 응답을 확인해주세요.'
+                    : alert.robotStopped
+                      ? '실제 정지 여부를 확인해주세요.'
+                      : '로보독 연결과 주변 상황을 즉시 확인해주세요.'}
               </small>
             </article>
           ))
