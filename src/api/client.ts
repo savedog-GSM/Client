@@ -10,6 +10,7 @@ import type {
   SafetyRecord,
   Segment,
   Telemetry,
+  VisionResult,
 } from './types'
 
 export class ApiError extends Error {
@@ -90,7 +91,9 @@ export function createApi(settings: ConnectionSettings) {
       post<Report>(`/api/reports/${id}/submit`, { receiptNumber }),
     dismiss: (id: number) => post<Report>(`/api/reports/${id}/dismiss`),
     photo: (id: number) => request<{ url: string }>(`/api/reports/${id}/photo/url`),
-    frame: () => request<{ url: string }>('/api/robot/frames/latest/url'),
+    frame: (signal?: AbortSignal) =>
+      request<{ url: string }>('/api/robot/frames/latest/url', { signal }),
+    vision: (signal?: AbortSignal) => request<VisionResult>('/api/robot/vision', { signal }),
     location: (location: LocationInput) => post<void>('/api/robot/location', location, true),
   }
 }
