@@ -262,5 +262,22 @@ it('수집된 길이 없어 경로를 못 찾으면 서버의 안내를 표시�
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent', '경로를 찾지 못했습니다.')
+  expect((await screen.findByRole('alert')).textContent).toContain('잇는 수집 경로가 없습니다')
+  const link = screen.getByRole('link', { name: /카카오맵 도보 길찾기/ })
+  expect(link.getAttribute('href')).toBe(
+    'https://map.kakao.com/link/by/walk/출발지,37.5,127/도착지,37.6,127.1',
+  )
+  expect(link.getAttribute('target')).toBe('_blank')
+  expect(screen.queryByText('123.4 m')).toBeNull()
+})
+
+it('알 수 없는 404는 수집 경로 없음과 구분한다', async () => {
+  robot.api.searchPath.mockRejectedValue(
+    new ApiError(404, 'NOT_FOUND', '요청한 주소를 찾을 수 없습니다.'),
+  )
+  render(<MapPage />)
+  await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
+  await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
+  await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('API를 찾지 못했습니다')
 })

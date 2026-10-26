@@ -63,8 +63,14 @@ describe('API 인증과 오류 처리', () => {
     await expect(createApi(settings).status()).rejects.toMatchObject({
       status,
       code,
-      message: '오류 안내',
+      message: status === 401 ? expect.stringContaining('관제 인증에 실패') : '오류 안내',
     })
+  })
+  it('장치 인증 실패는 관제 토큰이 아닌 장치 토큰을 안내한다', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 401 })))
+    await expect(
+      createApi(settings).location({ latitude: 35.1, longitude: 126.8 }),
+    ).rejects.toMatchObject({ message: expect.stringContaining('DEVICE_API_TOKEN') })
   })
   it('JSON이 아닌 서버 오류도 표시할 수 있다', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('Bad Gateway', { status: 502 })))
