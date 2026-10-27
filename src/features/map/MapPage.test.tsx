@@ -50,7 +50,7 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
-it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 경로와 시간을 표시한다', async () => {
+it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 지도 경로를 조회한다', async () => {
   vi.mocked(searchWalkingRoute).mockResolvedValue({
     provider: 'KAKAO',
     path: [
@@ -69,6 +69,7 @@ it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 경로�
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
+  await waitFor(() => expect(searchWalkingRoute).toHaveBeenCalledOnce())
   expect(searchWalkingRoute).toHaveBeenCalledWith(
     { latitude: 37.5, longitude: 127 },
     { latitude: 37.6, longitude: 127.1 },
@@ -76,8 +77,6 @@ it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 경로�
   )
   expect(robot.api.searchPath).not.toHaveBeenCalled()
   expect(robot.api.segments).not.toHaveBeenCalled()
-  expect(await screen.findByText('약 15분')).toBeTruthy()
-  expect(screen.getByText('횡단보도를 건너세요')).toBeTruthy()
   expect(screen.queryByText('평균 위험도')).toBeNull()
 })
 
@@ -227,7 +226,7 @@ it('위치 조회가 지연되면 실패 안내를 표시한다', async () => {
     await screen.findByText('현재 위치를 확인하지 못했습니다. 기본 위치로 표시합니다.'),
   ).toBeTruthy()
 })
-it('도보 경로를 못 찾으면 오류와 외부 길찾기 링크를 표시한다', async () => {
+it('도보 경로를 못 찾으면 오류를 표시한다', async () => {
   vi.mocked(searchWalkingRoute).mockRejectedValue(
     new ApiError(422, 'ROUTE_RESULT_NOT_FOUND', '두 지점을 잇는 도보 경로를 찾지 못했습니다.'),
   )
@@ -236,11 +235,7 @@ it('도보 경로를 못 찾으면 오류와 외부 길찾기 링크를 표시�
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
   expect((await screen.findByRole('alert')).textContent).toContain('도보 경로를 찾지 못했습니다')
-  const link = screen.getByRole('link', { name: /카카오맵 도보 길찾기/ })
-  expect(link.getAttribute('href')).toBe(
-    'https://map.kakao.com/link/by/walk/출발지,37.5,127/도착지,37.6,127.1',
-  )
-  expect(link.getAttribute('target')).toBe('_blank')
+  expect(screen.queryByRole('link', { name: /카카오맵 도보 길찾기/ })).toBeNull()
   expect(screen.queryByText('123.4 m')).toBeNull()
 })
 
