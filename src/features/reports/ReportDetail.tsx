@@ -82,8 +82,8 @@ export default function ReportDetail({ id }: { id: number }) {
           )}
           {canProcess && (
             <div className="report-processing">
-              <h3>신고 검토</h3>
-              <p>민원 창구에 직접 접수한 뒤 받은 접수번호를 등록해주세요.</p>
+              <h3>안전신문고 신고</h3>
+              <p>현장 내용을 안전신문고에 신고한 뒤 발급받은 접수번호를 등록해주세요.</p>
               <label>
                 접수번호
                 <input
@@ -94,7 +94,7 @@ export default function ReportDetail({ id }: { id: number }) {
                     setReceipt(e.target.value)
                     setAction(null)
                   }}
-                  placeholder="민원 창구에서 받은 접수번호"
+                  placeholder="안전신문고에서 받은 접수번호"
                 />
               </label>
               <div className="actions">

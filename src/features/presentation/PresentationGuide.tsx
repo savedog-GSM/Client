@@ -34,7 +34,7 @@ const steps = [
   {
     title: '위험 신고',
     path: '/reports',
-    description: '대기 중인 신고를 열고 사진 확인, 접수번호 등록 과정을 보여주세요.',
+    description: '현장 사진을 확인하고 안전신문고에 접수한 번호를 기록하는 과정을 보여주세요.',
   },
   {
     title: '위치 전송',
