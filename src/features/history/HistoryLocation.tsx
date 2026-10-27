@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { Api } from '../../api/client'
 import { errorMessage } from '../../api/client'
 import type { RobotStatus } from '../../api/types'
-import Link from '../../app/ModeLink'
 import { ErrorNotice, time } from '../../components/ui'
 
 export default function HistoryLocation({ api }: { api: Api }) {
@@ -71,7 +70,6 @@ export default function HistoryLocation({ api }: { api: Api }) {
         센서 기록에 위치가 저장되려면 센서 수신 당시 GPS가 5초 이내에 도착하고 위치 오차가 30m
         이하여야 합니다.
       </p>
-      <Link to="/location">스마트폰 위치 전송 화면 열기 →</Link>
     </section>
   )
 }

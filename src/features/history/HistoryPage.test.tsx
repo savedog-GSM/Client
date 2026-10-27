@@ -115,7 +115,5 @@ it('최신 GPS가 없으면 위치 전송 안내를 표시한다', async () => {
   expect((await screen.findByRole('status')).textContent).toContain(
     '스마트폰 위치 전송과 센서 전송',
   )
-  expect(screen.getByRole('link', { name: /위치 전송 화면/ }).getAttribute('href')).toBe(
-    '/location',
-  )
+  expect(screen.queryByRole('link', { name: /위치 전송 화면/ })).toBeNull()
 })
