@@ -22,20 +22,12 @@ export default function MapPage() {
   const [endAddress, setEndAddress] = useState('')
   const [focus, setFocus] = useState<Point | null>(null)
   const [selecting, setSelecting] = useState<'start' | 'end'>('start')
-  const { route, loading, error, search, invalidateRoute } = useWalkingRoute(
-    api,
-    demo,
-  )
+  const { route, loading, error, search, invalidateRoute } = useWalkingRoute(api, demo)
   const focusCurrentPosition = useCallback((point: Point) => {
     setFocus((previous) => previous ?? point)
   }, [])
-  const {
-    currentPosition,
-    positionAccuracy,
-    locating,
-    locationMessage,
-    refreshPosition,
-  } = useCurrentPosition(demo, focusCurrentPosition)
+  const { currentPosition, positionAccuracy, locating, locationMessage, refreshPosition } =
+    useCurrentPosition(demo, focusCurrentPosition)
   const position = useMemo(
     () =>
       status.latitude == null || status.longitude == null
@@ -84,8 +76,7 @@ export default function MapPage() {
           </p>
           {positionAccuracy !== null && (
             <p className="muted" role="status">
-              위치 오차 범위: 약{' '}
-              {Math.ceil(positionAccuracy).toLocaleString('ko-KR')}m.
+              위치 오차 범위: 약 {Math.ceil(positionAccuracy).toLocaleString('ko-KR')}m.
               {positionAccuracy > 100 &&
                 ' 대략적인 위치입니다. PC에서는 실제 위치와 멀리 떨어질 수 있어요. 정확한 출발지는 주소 검색으로 선택해주세요.'}
             </p>
@@ -106,8 +97,8 @@ export default function MapPage() {
             {locating ? '위치 확인 중…' : '현재 위치 다시 확인'}
           </button>
           <p className="muted">
-            지도를 눌러 {selecting === 'start' ? '출발지' : '도착지'}를
-            선택하세요. 로보독 표시는 마지막 수신 위치입니다.
+            지도를 눌러 {selecting === 'start' ? '출발지' : '도착지'}를 선택하세요. 로보독 표시는
+            마지막 수신 위치입니다.
           </p>
         </section>
         <aside className="panel">
@@ -166,17 +157,11 @@ export default function MapPage() {
             }}
           />
           <div className="route-points">
-            <button
-              aria-pressed={selecting === 'start'}
-              onClick={() => setSelecting('start')}
-            >
+            <button aria-pressed={selecting === 'start'} onClick={() => setSelecting('start')}>
               <strong>출발지 선택</strong>
               <small>{start ? startLabel : '지도를 눌러 선택'}</small>
             </button>
-            <button
-              aria-pressed={selecting === 'end'}
-              onClick={() => setSelecting('end')}
-            >
+            <button aria-pressed={selecting === 'end'} onClick={() => setSelecting('end')}>
               <strong>도착지 선택</strong>
               <small>{end ? endLabel : '지도를 눌러 선택'}</small>
             </button>
@@ -190,9 +175,7 @@ export default function MapPage() {
           </button>
           <ErrorNotice message={error} />
           <p className="muted">
-            {demo
-              ? '시연용 예시 경로입니다.'
-              : '도보 경로를 기준으로 한 예상 이동 경로입니다.'}
+            {demo ? '시연용 예시 경로입니다.' : '도보 경로를 기준으로 한 예상 이동 경로입니다.'}
           </p>
         </aside>
       </div>
