@@ -15,7 +15,7 @@ export default function ReportsPage() {
     <>
       <PageTitle
         title="위험 신고"
-        description="자동으로 생성된 신고를 검토하고 처리 상태를 관리합니다."
+        description="로보독이 감지한 위험을 확인하고 안전신문고 접수 결과를 기록합니다."
       />
       <ErrorNotice message={reportsError} retry={retry} />
       <div className="tabs" aria-label="신고 상태 필터">
