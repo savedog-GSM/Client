@@ -499,3 +499,14 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+.camera-upload {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e9f0;
+}
+.camera-upload-preview {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 10px;
+  background: #111b2c;
+}

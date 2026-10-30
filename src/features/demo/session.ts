@@ -183,6 +183,7 @@ export function createDemoSession() {
       return { url: '/demo/obstacle.svg' }
     },
     frame: async () => ({ url: '/demo/obstacle.svg' }),
+    sendFrame: async () => undefined,
     vision: async () => ({
       available: true,
       fresh: true,
