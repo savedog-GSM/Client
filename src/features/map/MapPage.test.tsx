@@ -18,7 +18,7 @@ const robot = vi.hoisted(() => ({
   getCurrentPosition: vi.fn(),
 }))
 vi.mock('../../app/RobotProvider', () => ({
-  useRobot: () => ({ api: robot.api, status, reports: [], history: [] }),
+  useRobot: () => ({ api: robot.api, status, reports: [], history: [], demo: false }),
 }))
 vi.mock('./SafetyMap', () => ({
   default: ({
@@ -38,6 +38,16 @@ vi.mock('./SafetyMap', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(searchWalkingRoute).mockReset()
+  robot.api.searchPath.mockReset().mockResolvedValue({
+    mode: 'SAFEST',
+    path: [
+      { latitude: 37.5, longitude: 127 },
+      { latitude: 37.6, longitude: 127.1 },
+    ],
+    distanceMeters: 1300,
+    averageRiskScore: 1,
+    maxRiskLevel: 'SAFE',
+  })
   robot.api.segments.mockResolvedValue([])
   robot.getCurrentPosition.mockReset()
   vi.mocked(searchLocations).mockReset()
@@ -50,34 +60,23 @@ beforeEach(() => {
   )
 })
 afterEach(() => vi.unstubAllGlobals())
-it('기본 카카오 도보 모드에서는 수집 경로 서버 없이 지도 경로를 조회한다', async () => {
-  vi.mocked(searchWalkingRoute).mockResolvedValue({
-    provider: 'KAKAO',
-    path: [
-      { latitude: 37.5, longitude: 127 },
-      { latitude: 37.6, longitude: 127.1 },
-    ],
-    distanceMeters: 1200,
-    durationSeconds: 900,
-    steps: [{ instruction: '횡단보도를 건너세요', distanceMeters: 100 }],
-  })
+it('기본 안전 우선 모드에서는 수집 경로 서버를 조회한다', async () => {
   render(<MapPage />)
-  expect(screen.queryByRole('radio')).toBeNull()
-  expect(screen.queryByText('길찾기 종류')).toBeNull()
+  expect((screen.getByRole('radio', { name: /안전 우선/ }) as HTMLInputElement).checked).toBe(true)
+  expect(screen.getByText('길찾기 종류')).toBeTruthy()
   expect(screen.getByText('● 보라색: 로보독 예상 이동 경로')).toBeTruthy()
-  expect(screen.queryByRole('combobox', { name: '탐색 방식' })).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
-  await waitFor(() => expect(searchWalkingRoute).toHaveBeenCalledOnce())
-  expect(searchWalkingRoute).toHaveBeenCalledWith(
+  await waitFor(() => expect(robot.api.searchPath).toHaveBeenCalledOnce())
+  expect(robot.api.searchPath).toHaveBeenCalledWith(
     { latitude: 37.5, longitude: 127 },
     { latitude: 37.6, longitude: 127.1 },
+    'SAFEST',
     expect.any(AbortSignal),
   )
-  expect(robot.api.searchPath).not.toHaveBeenCalled()
+  expect(searchWalkingRoute).not.toHaveBeenCalled()
   expect(robot.api.segments).not.toHaveBeenCalled()
-  expect(screen.queryByText('평균 위험도')).toBeNull()
 })
 
 it('도보 키 설정이 없으면 안내하고 경로를 만들어 표시하지 않는다', async () => {
@@ -85,6 +84,7 @@ it('도보 키 설정이 없으면 안내하고 경로를 만들어 표시하지
     new ApiError(503, 'WALKING_NOT_CONFIGURED', '카카오 도보 길찾기 연결 설정이 필요합니다.'),
   )
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: /최단 거리/ }))
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
@@ -162,6 +162,7 @@ it('현재 위치를 출발지로, 검색한 주소를 도착지로 설정한다
   await userEvent.type(screen.getByLabelText('도착지 주소'), '광주역')
   await userEvent.click(screen.getByRole('button', { name: '도착지 주소 검색' }))
   await userEvent.click(await screen.findByRole('button', { name: /광주역 광주 북구/ }))
+  await userEvent.click(screen.getByRole('radio', { name: /최단 거리/ }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
   expect(searchWalkingRoute).toHaveBeenCalledWith(
     { latitude: 35.123, longitude: 126.456 },
@@ -231,6 +232,7 @@ it('도보 경로를 못 찾으면 오류를 표시한다', async () => {
     new ApiError(422, 'ROUTE_RESULT_NOT_FOUND', '두 지점을 잇는 도보 경로를 찾지 못했습니다.'),
   )
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: /최단 거리/ }))
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))
@@ -244,6 +246,7 @@ it('알 수 없는 404는 수집 경로 없음과 구분한다', async () => {
     new ApiError(404, 'NOT_FOUND', '요청한 주소를 찾을 수 없습니다.'),
   )
   render(<MapPage />)
+  await userEvent.click(screen.getByRole('radio', { name: /최단 거리/ }))
   await userEvent.click(screen.getByRole('button', { name: '지도 출발점' }))
   await userEvent.click(screen.getByRole('button', { name: '지도 도착점' }))
   await userEvent.click(screen.getByRole('button', { name: '경로 찾기' }))

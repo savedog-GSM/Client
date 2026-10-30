@@ -85,8 +85,12 @@ export function createApi(settings: ConnectionSettings) {
         `/api/safety/records?${new URLSearchParams(Object.entries(bounds).map(([key, value]) => [key, String(value)]))}`,
         { signal },
       ),
-    searchPath: (start: Point, end: Point, mode: PathMode) =>
-      post<PathResult>('/api/paths/search', { start, end, mode }),
+    searchPath: (start: Point, end: Point, mode: PathMode, signal?: AbortSignal) =>
+      request<PathResult>('/api/paths/search', {
+        method: 'POST',
+        body: JSON.stringify({ start, end, mode }),
+        signal,
+      }),
     command: (command: Command) =>
       post<{ commandId: number; type: string; sentAt: string }>('/api/robot/commands', command),
     reports: (signal?: AbortSignal) => request<Report[]>('/api/reports', { signal }),
