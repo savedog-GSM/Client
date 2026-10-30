@@ -27,7 +27,8 @@ export function createApi(settings: ConnectionSettings) {
   const base = settings.apiUrl.replace(/\/$/, '')
   async function request<T>(path: string, options: RequestInit = {}, device = false): Promise<T> {
     const headers = new Headers(options.headers)
-    if (options.body) headers.set('Content-Type', 'application/json')
+    if (options.body && !headers.has('Content-Type'))
+      headers.set('Content-Type', 'application/json')
     if (device && settings.deviceToken) headers.set('X-Device-Token', settings.deviceToken)
     if (!device && settings.operatorToken)
       headers.set('Authorization', `Bearer ${settings.operatorToken}`)
@@ -101,6 +102,12 @@ export function createApi(settings: ConnectionSettings) {
     photo: (id: number) => request<{ url: string }>(`/api/reports/${id}/photo/url`),
     frame: (signal?: AbortSignal) =>
       request<{ url: string }>('/api/robot/frames/latest/url', { signal }),
+    sendFrame: (jpeg: Blob, signal?: AbortSignal) =>
+      request<void>(
+        '/api/robot/frames',
+        { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: jpeg, signal },
+        true,
+      ),
     vision: (signal?: AbortSignal) => request<VisionResult>('/api/robot/vision', { signal }),
     location: (location: LocationInput) => post<void>('/api/robot/location', location, true),
   }

@@ -35,6 +35,17 @@ describe('API 인증과 오류 처리', () => {
     expect(options.headers.has('Authorization')).toBe(false)
     expect(JSON.parse(options.body)).toEqual(point)
   })
+  it('카메라 프레임은 JPEG와 장치 토큰으로 전송한다', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetch)
+    const jpeg = new Blob(['jpeg'], { type: 'image/jpeg' })
+    await createApi(settings).sendFrame(jpeg)
+    const [url, options] = fetch.mock.calls[0]
+    expect(url).toBe('http://localhost:8080/api/robot/frames')
+    expect(options.headers.get('Content-Type')).toBe('image/jpeg')
+    expect(options.headers.get('X-Device-Token')).toBe('device-test')
+    expect(options.body).toBe(jpeg)
+  })
   it('인증을 끈 서버에는 빈 토큰을 보내지 않는다', async () => {
     const fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response('{}')))
     vi.stubGlobal('fetch', fetch)

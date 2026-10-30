@@ -3,6 +3,7 @@ import { useRobot } from '../../app/RobotProvider'
 import { Empty } from '../../components/ui'
 import { useCameraFeed } from './useCameraFeed'
 import VisionPanel from './VisionPanel'
+import { useCameraUpload } from './useCameraUpload'
 
 export default function CameraPanel({ autoStart = false }: { autoStart?: boolean }) {
   const { api, now, demo } = useRobot()
@@ -11,6 +12,7 @@ export default function CameraPanel({ autoStart = false }: { autoStart?: boolean
     api,
     enabled,
   )
+  const cameraUpload = useCameraUpload(api)
   return (
     <section className="panel dashboard-camera">
       <div className="section-heading">
@@ -52,6 +54,37 @@ export default function CameraPanel({ autoStart = false }: { autoStart?: boolean
           fresh={!!vision?.result.fresh && now - vision.requestedAt <= 3000}
           error={visionError}
         />
+      )}
+      {!demo && (
+        <div className="camera-upload">
+          <div className="section-heading">
+            <div>
+              <h3>브라우저 카메라 전송</h3>
+              <p>카메라 영상을 1초마다 로보독 프레임으로 전송합니다.</p>
+            </div>
+            <button
+              aria-pressed={cameraUpload.active}
+              disabled={cameraUpload.starting}
+              onClick={() =>
+                void (cameraUpload.active ? cameraUpload.stop() : cameraUpload.start())
+              }
+            >
+              {cameraUpload.starting
+                ? '카메라 연결 중…'
+                : cameraUpload.active
+                  ? '전송 중지'
+                  : '카메라 전송 시작'}
+            </button>
+          </div>
+          <video
+            ref={cameraUpload.videoRef}
+            className="camera-upload-preview"
+            muted
+            playsInline
+            hidden={!cameraUpload.active}
+          />
+          {cameraUpload.error && <p className="error-notice">{cameraUpload.error}</p>}
+        </div>
       )}
     </section>
   )
