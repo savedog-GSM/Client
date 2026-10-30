@@ -99,7 +99,7 @@ export default function HistoryPage() {
                   <tr>
                     <th>수신 시각</th>
                     <th>거리</th>
-                    <th>Roll / Pitch</th>
+                    <th>온도 / 습도</th>
                     <th>위험도</th>
                     <th>위도</th>
                     <th>경도</th>
@@ -111,7 +111,8 @@ export default function HistoryPage() {
                       <td>{time(record.recordedAt)}</td>
                       <td>{number(record.sensor.distance, ' cm')}</td>
                       <td>
-                        {number(record.sensor.roll, '°')} / {number(record.sensor.pitch, '°')}
+                        {number(record.sensor.temperature, '°C')} /{' '}
+                        {number(record.sensor.humidity, '%')}
                       </td>
                       <td>
                         <RiskBadge risk={record.risk} />
