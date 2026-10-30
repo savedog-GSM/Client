@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Api } from '../../api/client'
-import type { Point, WalkingRoute } from '../../api/types'
+import type { PathMode, Point, WalkingRoute } from '../../api/types'
 import { searchWalkingRoute } from './walkingRoute'
 import { routeErrorMessage } from './routeErrors'
 
-export function useWalkingRoute(api: Api, demo: boolean) {
+export function useWalkingRoute(api: Api) {
   const [route, setRoute] = useState<WalkingRoute | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,7 +18,7 @@ export function useWalkingRoute(api: Api, demo: boolean) {
     setError('')
     setLoading(false)
   }
-  async function search(start: Point | null, end: Point | null) {
+  async function search(start: Point | null, end: Point | null, mode: PathMode) {
     if (!start || !end) return
     const currentSearch = ++searchRevision.current
     routeRequest.current?.abort()
@@ -29,7 +29,7 @@ export function useWalkingRoute(api: Api, demo: boolean) {
     setRoute(null)
     try {
       let result: WalkingRoute
-      if (!demo) {
+      if (mode === 'SHORTEST') {
         result = await searchWalkingRoute(
           start,
           end,
@@ -39,7 +39,8 @@ export function useWalkingRoute(api: Api, demo: boolean) {
         const collected = await api.searchPath(
           { latitude: start.latitude, longitude: start.longitude },
           { latitude: end.latitude, longitude: end.longitude },
-          'SAFEST',
+          mode,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
         )
         result = {
           provider: 'KAKAO',

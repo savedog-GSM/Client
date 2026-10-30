@@ -7,7 +7,7 @@ const steps = [
   {
     title: '실시간 상태',
     path: '/',
-    description: '전방 거리와 기울기, 현재 위험도와 이동 위치를 함께 보여주세요.',
+    description: '전방 거리와 온도·습도, 현재 위험도와 이동 위치를 함께 보여주세요.',
   },
   {
     title: '안전 경로',
@@ -24,7 +24,7 @@ const steps = [
   {
     title: '이동 통계',
     path: '/history',
-    description: '최근 이동 기록에서 거리·기울기·위험도 변화를 확인하세요.',
+    description: '최근 이동 기록에서 거리·온도·습도·위험도 변화를 확인하세요.',
   },
   {
     title: '위험 알림',

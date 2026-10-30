@@ -46,6 +46,15 @@ const showDashboard = () =>
     </MemoryRouter>,
   )
 
+it('웹소켓 연결 전에도 최신 HTTP 센서의 온도와 습도를 표시한다', () => {
+  robot.stream = 'connecting'
+  showDashboard()
+  expect(screen.getByText('24.5')).toBeTruthy()
+  expect(screen.getByText('41')).toBeTruthy()
+  expect(screen.getByText('°C')).toBeTruthy()
+  expect(screen.getByText('%')).toBeTruthy()
+})
+
 it('오래된 센서 값을 현재의 안전 상태로 표시하지 않는다', async () => {
   robot.status = {
     ...robot.status,

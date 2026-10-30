@@ -10,8 +10,8 @@ export interface Point {
 }
 export interface Sensor {
   distance: number | null
-  roll: number | null
-  pitch: number | null
+  temperature: number | null
+  humidity: number | null
 }
 export interface Telemetry {
   id: number

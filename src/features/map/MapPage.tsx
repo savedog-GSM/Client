@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { Point } from '../../api/types'
+import type { PathMode, Point } from '../../api/types'
 import { useRobot } from '../../app/RobotProvider'
 import { ErrorNotice, PageTitle } from '../../components/ui'
 import ExpandableMap from './ExpandableMap'
@@ -8,6 +8,7 @@ import { usePointAddress, type AddressPoint } from './usePointAddress'
 
 import { useCurrentPosition } from './useCurrentPosition'
 import { useWalkingRoute } from './useWalkingRoute'
+import RouteModeSelect from './RouteModeSelect'
 
 const emptyOverlays = { segments: [], records: [] }
 const ignoreBounds = () => {}
@@ -22,7 +23,8 @@ export default function MapPage() {
   const [endAddress, setEndAddress] = useState('')
   const [focus, setFocus] = useState<Point | null>(null)
   const [selecting, setSelecting] = useState<'start' | 'end'>('start')
-  const { route, loading, error, search, invalidateRoute } = useWalkingRoute(api, demo)
+  const [mode, setMode] = useState<PathMode>('SAFEST')
+  const { route, loading, error, search, invalidateRoute } = useWalkingRoute(api)
   const focusCurrentPosition = useCallback((point: Point) => {
     setFocus((previous) => previous ?? point)
   }, [])
@@ -166,16 +168,27 @@ export default function MapPage() {
               <small>{end ? endLabel : '지도를 눌러 선택'}</small>
             </button>
           </div>
+          <RouteModeSelect
+            value={mode}
+            onChange={(nextMode) => {
+              invalidateRoute()
+              setMode(nextMode)
+            }}
+          />
           <button
             className="primary full-width"
             disabled={!start || !end || loading}
-            onClick={() => void search(start, end)}
+            onClick={() => void search(start, end, mode)}
           >
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
           <ErrorNotice message={error} />
           <p className="muted">
-            {demo ? '시연용 예시 경로입니다.' : '도보 경로를 기준으로 한 예상 이동 경로입니다.'}
+            {demo
+              ? '시연용 예시 경로입니다.'
+              : mode === 'SAFEST'
+                ? '수집된 위험도를 반영한 안전 우선 경로입니다.'
+                : '카카오 도보 경로를 기준으로 한 최단 경로입니다.'}
           </p>
         </aside>
       </div>

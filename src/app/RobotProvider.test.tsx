@@ -132,7 +132,10 @@ it('늦게 도착한 초기 조회가 새 실시간 센서 값을 덮어쓰지 �
   await act(async () =>
     resolveStatus(
       new Response(
-        JSON.stringify({ ...status, sensor: { distance: 100, roll: null, pitch: null } }),
+        JSON.stringify({
+          ...status,
+          sensor: { distance: 100, temperature: null, humidity: null },
+        }),
       ),
     ),
   )

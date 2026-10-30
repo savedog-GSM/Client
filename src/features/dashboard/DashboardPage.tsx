@@ -20,7 +20,7 @@ export default function DashboardPage() {
     controls.current.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
   }, [hash])
   const { status, statusError, retry, now, stream } = useRobot()
-  const sensorFresh = stream === 'connected' && isFresh(status.lastSeenAt, now, 3)
+  const sensorFresh = isFresh(status.lastSeenAt, now, 3)
   const gpsFresh =
     stream === 'connected' &&
     status.latitude !== null &&
@@ -43,18 +43,18 @@ export default function DashboardPage() {
       description: '전방 거리 측정값',
     },
     {
-      title: '좌우 기울기',
-      tag: 'Roll',
-      value: sensorFresh ? status.sensor?.roll : null,
-      unit: '°',
-      description: '좌우 자세 측정값',
+      title: '온도',
+      tag: 'Temperature',
+      value: sensorFresh ? status.sensor?.temperature : null,
+      unit: '°C',
+      description: '주변 온도 측정값',
     },
     {
-      title: '앞뒤 기울기',
-      tag: 'Pitch',
-      value: sensorFresh ? status.sensor?.pitch : null,
-      unit: '°',
-      description: '앞뒤 자세 측정값',
+      title: '습도',
+      tag: 'Humidity',
+      value: sensorFresh ? status.sensor?.humidity : null,
+      unit: '%',
+      description: '주변 습도 측정값',
     },
   ]
   return (

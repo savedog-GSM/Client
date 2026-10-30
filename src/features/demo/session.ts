@@ -24,8 +24,8 @@ export function createDemoSession() {
       sensor: {
         distance:
           riskLevel === 'DANGER' ? 15 : riskLevel === 'CAUTION' ? 42 : 130 + Math.sin(sequence) * 4,
-        roll: Math.sin(sequence / 3) * 2,
-        pitch: Math.cos(sequence / 4) * 3,
+        temperature: 24 + Math.sin(sequence / 3),
+        humidity: 40 + Math.cos(sequence / 4) * 3,
       },
       risk: risks[riskLevel],
       recordedAt: new Date(at).toISOString(),

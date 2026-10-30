@@ -10,7 +10,7 @@ export const telemetry: Telemetry = {
   latitude: 37.5665,
   longitude: 126.978,
   speed: 0.4,
-  sensor: { distance: 15, roll: 0, pitch: null },
+  sensor: { distance: 15, temperature: 24.5, humidity: 41 },
   risk: { level: 'DANGER', score: 5, reason: '전방 15cm 장애물' },
   recordedAt: '2026-10-19T15:30:00',
 }
