@@ -65,16 +65,13 @@ export function createFacilitiesApi(settings: ConnectionSettings) {
       try {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' }
         if (settings.operatorToken) headers.Authorization = `Bearer ${settings.operatorToken}`
-        const response = await fetch(
-          `${settings.apiUrl.replace(/\/$/, '')}/api/facilities/nearest-route`,
-          {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ category, origin }),
-            signal: controller.signal,
-            cache: 'no-store',
-          },
-        )
+        const response = await fetch('/api/facilities/nearest-route', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ category, origin }),
+          signal: controller.signal,
+          cache: 'no-store',
+        })
         const body = await response.json().catch(() => null)
         if (!response.ok) {
           if (

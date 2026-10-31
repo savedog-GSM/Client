@@ -17,7 +17,7 @@ it('시설 종류와 현재 위치를 새 API로 전송하고 장치 토큰을 �
   const route = await createFacilitiesApi(settings).nearestRoute('TOILET', origin, signal())
   expect(route.facility.category).toBe('TOILET')
   expect(fetch).toHaveBeenCalledWith(
-    `${settings.apiUrl}/api/facilities/nearest-route`,
+    '/api/facilities/nearest-route',
     expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ category: 'TOILET', origin }),
