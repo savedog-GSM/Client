@@ -21,7 +21,7 @@ export default function CameraPanel({ autoStart = false }: { autoStart?: boolean
           <p>
             {demo
               ? '시연용 이미지와 예시 인식 결과입니다.'
-              : '1초마다 최신 프레임과 인식 결과를 조회합니다.'}
+              : '핸드폰에서 마지막으로 촬영한 사진과 인식 결과입니다.'}
           </p>
         </div>
         <button
