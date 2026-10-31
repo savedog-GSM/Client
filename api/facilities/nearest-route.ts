@@ -1,7 +1,7 @@
 import { env } from 'node:process'
 import type { Point, WalkingRoute } from '../../src/api/types'
 import type { FacilityCategory, FacilityRoute } from '../../src/features/facilities/types'
-import { GET as getWalkingRoute } from '../walking-route'
+import { GET as getWalkingRoute } from '../walking-route.js'
 
 interface PlaceDocument {
   id: string
