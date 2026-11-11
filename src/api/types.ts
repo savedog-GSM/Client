@@ -112,3 +112,67 @@ export interface VisionResult {
   reason: string | null
   detections: VisionDetection[]
 }
+
+export interface OwnerFaceResult {
+  id: number
+  faceScore: number
+  similarityToOthers: number | null
+  registeredCount: number
+  createdAt: string
+}
+
+export interface OwnerFaceDeleteResult {
+  deleted: number
+  remaining: number
+}
+
+export type OwnerDirection = 'LEFT' | 'CENTER' | 'RIGHT'
+
+export interface OwnerSighting {
+  frameReceivedAt: string
+  analyzedAt: string
+  facesInFrame: number
+  ownerVisible: boolean
+  similarity: number | null
+  horizontalOffset: number | null
+  verticalOffset: number | null
+  direction: OwnerDirection | null
+  faceWidthRatio: number | null
+}
+
+export interface OwnerSightingResult {
+  available: boolean
+  registeredFaces: number
+  fresh: boolean
+  ownerVisible: boolean
+  sighting: OwnerSighting | null
+}
+
+export type OwnerReturnStatus =
+  | 'IDLE'
+  | 'WAITING_FOR_ROBOT_LOCATION'
+  | 'FINDING_HEADING'
+  | 'NAVIGATING'
+  | 'TURNING'
+  | 'APPROACHING_BY_FACE'
+  | 'BLOCKED_BY_OBSTACLE'
+  | 'NO_SAFE_ROUTE'
+  | 'ROBOT_DISCONNECTED'
+  | 'ARRIVED'
+  | 'GAVE_UP'
+
+export interface OwnerReturnResult {
+  active: boolean
+  status: OwnerReturnStatus
+  message: string
+  owner: Point | null
+  ownerAccuracy: number | null
+  ownerUpdatedAt: string | null
+  robot: Point | null
+  distanceMeters: number | null
+  route: Point[]
+  lastCommand: CommandType | null
+  lastCommandAt: string | null
+  startedAt: string | null
+  finishedAt: string | null
+}

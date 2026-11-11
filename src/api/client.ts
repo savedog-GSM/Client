@@ -2,6 +2,10 @@ import type {
   Command,
   ConnectionSettings,
   LocationInput,
+  OwnerFaceDeleteResult,
+  OwnerFaceResult,
+  OwnerReturnResult,
+  OwnerSightingResult,
   PathMode,
   PathResult,
   Point,
@@ -27,7 +31,7 @@ export function createApi(settings: ConnectionSettings) {
   const base = settings.apiUrl.replace(/\/$/, '')
   async function request<T>(path: string, options: RequestInit = {}, device = false): Promise<T> {
     const headers = new Headers(options.headers)
-    if (options.body && !headers.has('Content-Type'))
+    if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type'))
       headers.set('Content-Type', 'application/json')
     if (device && settings.deviceToken) headers.set('X-Device-Token', settings.deviceToken)
     if (!device && settings.operatorToken)
@@ -110,6 +114,22 @@ export function createApi(settings: ConnectionSettings) {
       ),
     vision: (signal?: AbortSignal) => request<VisionResult>('/api/robot/vision', { signal }),
     location: (location: LocationInput) => post<void>('/api/robot/location', location, true),
+    registerOwnerFace: (image: File) => {
+      const body = new FormData()
+      body.append('image', image)
+      return request<OwnerFaceResult>('/api/owner/faces', { method: 'POST', body })
+    },
+    deleteOwnerFaces: (id?: number) =>
+      request<OwnerFaceDeleteResult>(`/api/owner/faces${id == null ? '' : `?id=${id}`}`, {
+        method: 'DELETE',
+      }),
+    ownerSighting: (signal?: AbortSignal) =>
+      request<OwnerSightingResult>('/api/owner/sighting', { signal }),
+    startOwnerReturn: (location: LocationInput) =>
+      post<OwnerReturnResult>('/api/owner/return', location),
+    ownerReturn: (signal?: AbortSignal) =>
+      request<OwnerReturnResult>('/api/owner/return', { signal }),
+    stopOwnerReturn: () => request<OwnerReturnResult>('/api/owner/return', { method: 'DELETE' }),
   }
 }
 export type Api = ReturnType<typeof createApi>
