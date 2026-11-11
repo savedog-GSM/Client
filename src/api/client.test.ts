@@ -5,7 +5,7 @@ import { settings } from '../test/fixtures'
 afterEach(() => vi.unstubAllGlobals())
 describe('API 인증과 오류 처리', () => {
   it('인식 결과는 관제 인증과 취소 신호를 사용해 조회한다', async () => {
-    const fetch = vi.fn().mockResolvedValue(new Response('{}'))
+    const fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response('{}')))
     vi.stubGlobal('fetch', fetch)
     const controller = new AbortController()
     await createApi(settings).vision(controller.signal)
@@ -102,5 +102,43 @@ describe('API 인증과 오류 처리', () => {
     const end = { latitude: 37.6, longitude: 127.1 }
     await api.searchPath(start, end, 'SHORTEST')
     expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({ start, end, mode: 'SHORTEST' })
+  })
+  it('주인 얼굴 사진은 multipart image 필드와 관제 인증으로 등록한다', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response('{}'))
+    vi.stubGlobal('fetch', fetch)
+    const image = new File(['face'], 'face.jpg', { type: 'image/jpeg' })
+    await createApi(settings).registerOwnerFace(image)
+    const [url, options] = fetch.mock.calls[0]
+    expect(url).toBe('http://localhost:8080/api/owner/faces')
+    expect(options.method).toBe('POST')
+    expect(options.headers.get('Authorization')).toBe('Bearer operator-test')
+    expect(options.headers.has('Content-Type')).toBe(false)
+    expect(options.body).toBeInstanceOf(FormData)
+    expect(options.body.get('image')).toBe(image)
+  })
+  it('주인 인식과 돌아가기 API의 요청 형식을 유지한다', async () => {
+    const fetch = vi.fn().mockImplementation(() => Promise.resolve(new Response('{}')))
+    vi.stubGlobal('fetch', fetch)
+    const api = createApi(settings)
+    await api.ownerSighting()
+    await api.startOwnerReturn({ latitude: 35.1, longitude: 126.8, accuracy: 7 })
+    await api.ownerReturn()
+    await api.stopOwnerReturn()
+    await api.deleteOwnerFaces(3)
+    expect(fetch.mock.calls.map(([url]) => url)).toEqual([
+      'http://localhost:8080/api/owner/sighting',
+      'http://localhost:8080/api/owner/return',
+      'http://localhost:8080/api/owner/return',
+      'http://localhost:8080/api/owner/return',
+      'http://localhost:8080/api/owner/faces?id=3',
+    ])
+    expect(fetch.mock.calls[1][1].method).toBe('POST')
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({
+      latitude: 35.1,
+      longitude: 126.8,
+      accuracy: 7,
+    })
+    expect(fetch.mock.calls[3][1].method).toBe('DELETE')
+    expect(fetch.mock.calls[4][1].method).toBe('DELETE')
   })
 })
