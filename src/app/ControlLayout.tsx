@@ -1,4 +1,4 @@
-import { Activity, Bell, FileText, History, Map, Smartphone } from 'lucide-react'
+import { Activity, Bell, FileText, History, Map, Smartphone, UserRoundSearch } from 'lucide-react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useRobot } from './RobotProvider'
 import Link from './ModeLink'
@@ -9,6 +9,7 @@ import HistoryPage from '../features/history/HistoryPage'
 import MapPage from '../features/map/MapPage'
 import ReportsPage from '../features/reports/ReportsPage'
 import DemoBanner from '../features/demo/DemoBanner'
+import OwnerPage from '../features/owner/OwnerPage'
 
 const navigation = [
   { path: '/', label: '대시보드', icon: Activity, image: '/figma/dashboard.svg' },
@@ -16,6 +17,7 @@ const navigation = [
   { path: '/history', label: '통계', icon: History, image: '/figma/history.svg' },
   { path: '/reports', label: '위험 신고', icon: FileText },
   { path: '/alerts', label: '알림', icon: Bell, image: '/figma/alerts.svg' },
+  { path: '/owner', label: '주인 찾기', icon: UserRoundSearch },
   { path: '/facilities', label: '편의시설', icon: Map },
   { path: '/location', label: '위치 전송', icon: Smartphone },
 ]
@@ -85,6 +87,7 @@ export default function ControlLayout() {
             />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/owner" element={<OwnerPage />} />
             <Route
               path="*"
               element={

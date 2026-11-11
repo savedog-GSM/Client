@@ -1,0 +1,156 @@
+.owner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.owner-card,
+.owner-return-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-file input {
+  padding: 8px;
+}
+
+.owner-file input::file-selector-button {
+  margin-right: 12px;
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 12px;
+  background: #edf2f8;
+  color: #31547e;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.owner-file-name {
+  color: #718078;
+  font-size: 12px;
+}
+
+.owner-result {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 15px;
+  border-radius: 10px;
+  background: #edf8f2;
+  color: #247356;
+  font-size: 12px;
+}
+
+.owner-actions {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.owner-sighting {
+  min-height: 165px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  background: #f4f6f9;
+  color: #75849a;
+}
+
+.owner-sighting.visible {
+  background: #ebf8f1;
+  color: #23805d;
+}
+
+.owner-sighting strong {
+  font-size: 19px;
+}
+
+.owner-sighting span {
+  font-size: 12px;
+}
+
+.owner-details {
+  margin-top: 12px;
+}
+
+.owner-return-card {
+  grid-column: 1 / -1;
+}
+
+.owner-return-summary {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: #edf3fb;
+  color: #31547e;
+}
+
+.owner-return-summary svg {
+  flex-shrink: 0;
+}
+
+.owner-return-summary p {
+  margin: 4px 0 0;
+  color: #6d7e93;
+  font-size: 12px;
+}
+
+.owner-return-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.owner-return-metrics > div {
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid #e1e7ee;
+  border-radius: 10px;
+}
+
+.owner-return-metrics span {
+  color: #7c899a;
+  font-size: 11px;
+}
+
+.owner-return-metrics strong {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.owner-return-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 190px;
+}
+
+@media (max-width: 900px) {
+  .owner-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-return-card {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .owner-return-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-return-actions {
+    flex-direction: column-reverse;
+  }
+
+  .owner-return-actions button {
+    width: 100%;
+  }
+}
