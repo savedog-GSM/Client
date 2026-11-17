@@ -117,11 +117,7 @@ export default function NavigationControl({
             <Octagon size={16} /> 이동 중지
           </button>
         )}
-        <button
-          className="primary"
-          onClick={() => void start()}
-          disabled={!target || busy}
-        >
+        <button className="primary" onClick={() => void start()} disabled={!target || busy}>
           <Navigation size={16} />
           {active ? '목적지 변경' : '로보독 이동 시작'}
         </button>

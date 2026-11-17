@@ -3,6 +3,7 @@ import type { OwnerFaceResult } from '../../api/types'
 import type { Api } from '../../api/client'
 import { errorMessage } from '../../api/client'
 import { number, time } from '../../components/ui'
+import { ACCEPTED_TYPES, prepareFacePhoto } from './facePhoto'
 
 export default function FaceManager({
   api,
@@ -31,7 +32,7 @@ export default function FaceManager({
     setBusy(true)
     setError('')
     try {
-      setResult(await api.registerOwnerFace(file))
+      setResult(await api.registerOwnerFace(await prepareFacePhoto(file)))
       setFile(null)
       onChange()
     } catch (requestError) {
@@ -67,7 +68,7 @@ export default function FaceManager({
       </div>
       <label className="owner-file">
         주인 사진
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectFile} />
+        <input type="file" accept={ACCEPTED_TYPES} onChange={selectFile} />
       </label>
       {file && <p className="owner-file-name">선택한 사진: {file.name}</p>}
       {error && (
