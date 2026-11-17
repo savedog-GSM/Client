@@ -49,6 +49,37 @@ export interface PathResult {
   averageRiskScore: number
   maxRiskLevel: RiskLevel
 }
+export type NavigationPurpose = 'DESTINATION' | 'OWNER'
+export type NavigationStatus =
+  | 'IDLE'
+  | 'WAITING_FOR_ROBOT_LOCATION'
+  | 'FINDING_HEADING'
+  | 'NAVIGATING'
+  | 'TURNING'
+  | 'APPROACHING_BY_FACE'
+  | 'BLOCKED_BY_OBSTACLE'
+  | 'NO_SAFE_ROUTE'
+  | 'ROBOT_DISCONNECTED'
+  | 'ARRIVED'
+  | 'GAVE_UP'
+
+export interface NavigationResult {
+  active: boolean
+  purpose: NavigationPurpose | null
+  mode: PathMode | null
+  status: NavigationStatus
+  message: string
+  target: Point | null
+  targetAccuracy: number | null
+  targetUpdatedAt: string | null
+  robot: Point | null
+  distanceMeters: number | null
+  plannedPath: PathResult | null
+  lastCommand: CommandType | null
+  lastCommandAt: string | null
+  startedAt: string | null
+  finishedAt: string | null
+}
 export interface WalkingRoute {
   provider: 'KAKAO'
   path: Point[]

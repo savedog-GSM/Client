@@ -9,6 +9,7 @@ import { usePointAddress, type AddressPoint } from './usePointAddress'
 import { useCurrentPosition } from './useCurrentPosition'
 import { useWalkingRoute } from './useWalkingRoute'
 import RouteModeSelect from './RouteModeSelect'
+import NavigationControl from './NavigationControl'
 
 const emptyOverlays = { segments: [], records: [] }
 const ignoreBounds = () => {}
@@ -183,6 +184,7 @@ export default function MapPage() {
             {loading ? '경로 탐색 중…' : '경로 찾기'}
           </button>
           <ErrorNotice message={error} />
+          <NavigationControl api={api} target={end} mode={mode} />
           <p className="muted">
             {demo
               ? '시연용 예시 경로입니다.'

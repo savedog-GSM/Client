@@ -1,5 +1,13 @@
 import type { Api } from '../../api/client'
-import type { DangerAlert, Point, Report, Risk, RiskLevel, Telemetry } from '../../api/types'
+import type {
+  DangerAlert,
+  NavigationResult,
+  Point,
+  Report,
+  Risk,
+  RiskLevel,
+  Telemetry,
+} from '../../api/types'
 
 export const demoPosition: Point = { latitude: 35.14332, longitude: 126.80079 }
 const risks: Record<RiskLevel, Risk> = {
@@ -14,6 +22,23 @@ export function createDemoSession() {
   let movingUntil = 0
   let speed = 0
   let point = { ...demoPosition }
+  let navigation: NavigationResult = {
+    active: false,
+    purpose: null,
+    mode: null,
+    status: 'IDLE',
+    message: '시연 모드에서는 실제 로보독을 움직이지 않습니다.',
+    target: null,
+    targetAccuracy: null,
+    targetUpdatedAt: null,
+    robot: point,
+    distanceMeters: null,
+    plannedPath: null,
+    lastCommand: null,
+    lastCommandAt: null,
+    startedAt: null,
+    finishedAt: null,
+  }
   let level: RiskLevel = 'SAFE'
   const listeners = new Set<() => void>()
   function sample(at: number, riskLevel = level): Telemetry {
@@ -151,6 +176,39 @@ export function createDemoSession() {
         averageRiskScore: mode === 'SAFEST' ? 1 : 3,
         maxRiskLevel: mode === 'SAFEST' ? 'SAFE' : 'CAUTION',
       }
+    },
+    startNavigation: async (target, mode) => {
+      navigation = {
+        ...navigation,
+        active: true,
+        purpose: 'DESTINATION',
+        mode,
+        status: 'NAVIGATING',
+        message: '시연 모드에서는 실제 로보독을 움직이지 않습니다.',
+        target,
+        robot: point,
+        distanceMeters: Math.hypot(
+          (target.latitude - point.latitude) * 111000,
+          (target.longitude - point.longitude) * 91000,
+        ),
+        lastCommand: 'FORWARD',
+        lastCommandAt: new Date().toISOString(),
+        startedAt: new Date().toISOString(),
+      }
+      return navigation
+    },
+    navigation: async () => navigation,
+    stopNavigation: async () => {
+      navigation = {
+        ...navigation,
+        active: false,
+        status: 'IDLE',
+        message: '자동 이동을 중지했습니다.',
+        lastCommand: 'STOP',
+        lastCommandAt: new Date().toISOString(),
+        finishedAt: new Date().toISOString(),
+      }
+      return navigation
     },
     command: async (command) => {
       commandId++

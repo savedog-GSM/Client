@@ -2,6 +2,7 @@ import type {
   Command,
   ConnectionSettings,
   LocationInput,
+  NavigationResult,
   OwnerFaceDeleteResult,
   OwnerFaceResult,
   OwnerReturnResult,
@@ -96,6 +97,10 @@ export function createApi(settings: ConnectionSettings) {
         body: JSON.stringify({ start, end, mode }),
         signal,
       }),
+    startNavigation: (target: Point, mode: PathMode) =>
+      post<NavigationResult>('/api/navigation', { ...target, mode }),
+    navigation: (signal?: AbortSignal) => request<NavigationResult>('/api/navigation', { signal }),
+    stopNavigation: () => request<NavigationResult>('/api/navigation', { method: 'DELETE' }),
     command: (command: Command) =>
       post<{ commandId: number; type: string; sentAt: string }>('/api/robot/commands', command),
     reports: (signal?: AbortSignal) => request<Report[]>('/api/reports', { signal }),
