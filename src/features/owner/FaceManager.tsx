@@ -60,13 +60,13 @@ export default function FaceManager({
     <section className="panel owner-card">
       <div className="section-heading">
         <div>
-          <h2>주인 얼굴 등록</h2>
-          <p>정면 얼굴이 선명하게 나온 사진을 한 장 선택해주세요.</p>
+          <h2>주인 사진 등록</h2>
+          <p>주인이 선명하게 나온 사진을 한 장 선택해주세요.</p>
         </div>
         <span className="count">{registeredFaces}장 등록</span>
       </div>
       <label className="owner-file">
-        얼굴 사진
+        주인 사진
         <input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectFile} />
       </label>
       {file && <p className="owner-file-name">선택한 사진: {file.name}</p>}
@@ -77,8 +77,8 @@ export default function FaceManager({
       )}
       {result && (
         <div className="owner-result" role="status">
-          <strong>얼굴 #{result.id} 등록 완료</strong>
-          <span>얼굴 인식 확신도 {number(result.faceScore * 100, '%')}</span>
+          <strong>주인 사진 #{result.id} 등록 완료</strong>
+          <span>주인 인식 확신도 {number(result.faceScore * 100, '%')}</span>
           <span>등록 시각 {time(result.createdAt)}</span>
         </div>
       )}
@@ -87,7 +87,7 @@ export default function FaceManager({
           전체 삭제
         </button>
         <button className="primary" onClick={register} disabled={busy || disabled || !file}>
-          {busy ? '처리 중' : '얼굴 등록'}
+          {busy ? '처리 중' : '주인 사진 등록'}
         </button>
       </div>
     </section>
