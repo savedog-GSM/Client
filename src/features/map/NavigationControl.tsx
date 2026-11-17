@@ -23,12 +23,10 @@ export default function NavigationControl({
   api,
   target,
   mode,
-  disabled,
 }: {
   api: Api
   target: Point | null
   mode: PathMode
-  disabled: boolean
 }) {
   const [state, setState] = useState<NavigationResult | null>(null)
   const [busy, setBusy] = useState(false)
@@ -115,14 +113,14 @@ export default function NavigationControl({
       )}
       <div className="navigation-control-actions">
         {active && (
-          <button className="stop-button" onClick={() => void stop()} disabled={busy || disabled}>
+          <button className="stop-button" onClick={() => void stop()} disabled={busy}>
             <Octagon size={16} /> 이동 중지
           </button>
         )}
         <button
           className="primary"
           onClick={() => void start()}
-          disabled={!target || busy || disabled}
+          disabled={!target || busy}
         >
           <Navigation size={16} />
           {active ? '목적지 변경' : '로보독 이동 시작'}
