@@ -14,7 +14,7 @@ export default function OwnerPage() {
     <>
       <PageTitle
         title="주인 찾기"
-        description="주인 얼굴을 인식하고 스마트폰의 현재 위치로 로보독을 돌아오게 합니다."
+        description="주인을 인식하고 스마트폰의 현재 위치로 로보독을 돌아오게 합니다."
         action={<button onClick={update}>새로고침</button>}
       />
       <ErrorNotice message={error} retry={update} />

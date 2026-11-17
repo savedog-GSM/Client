@@ -4,6 +4,7 @@ import { Empty } from '../../components/ui'
 import { useCameraFeed } from './useCameraFeed'
 import VisionPanel from './VisionPanel'
 import { useCameraUpload } from './useCameraUpload'
+import { useVisionVoiceGuide } from './useVisionVoiceGuide'
 
 export default function CameraPanel({ autoStart = false }: { autoStart?: boolean }) {
   const { api, now, demo } = useRobot()
@@ -12,6 +13,8 @@ export default function CameraPanel({ autoStart = false }: { autoStart?: boolean
     api,
     enabled,
   )
+  const fresh = !!vision?.result.fresh && now - vision.requestedAt <= 3000
+  useVisionVoiceGuide(enabled ? (vision?.result ?? null) : null, fresh)
   const cameraUpload = useCameraUpload(api)
   return (
     <section className="panel dashboard-camera">
@@ -48,13 +51,7 @@ export default function CameraPanel({ autoStart = false }: { autoStart?: boolean
             : '카메라 보기를 누르면 프레임과 물체 인식 결과를 확인할 수 있습니다.'}
         </Empty>
       )}
-      {enabled && (
-        <VisionPanel
-          result={vision?.result ?? null}
-          fresh={!!vision?.result.fresh && now - vision.requestedAt <= 3000}
-          error={visionError}
-        />
-      )}
+      {enabled && <VisionPanel result={vision?.result ?? null} fresh={fresh} error={visionError} />}
       {!demo && (
         <div className="camera-upload">
           <div className="section-heading">

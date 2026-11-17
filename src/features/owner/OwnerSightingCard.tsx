@@ -5,7 +5,7 @@ import { directionNames } from './ownerLabels'
 
 function status(result: OwnerSightingResult | null) {
   if (!result?.available) return ['모델 확인 필요', 'unknown']
-  if (result.registeredFaces === 0) return ['얼굴 등록 필요', 'caution']
+  if (result.registeredFaces === 0) return ['주인 사진 등록 필요', 'caution']
   if (!result.fresh) return ['새 사진 대기 중', 'unknown']
   if (result.ownerVisible) return ['주인 발견', 'safe']
   return ['주인 찾는 중', 'caution']
@@ -19,7 +19,7 @@ export default function OwnerSightingCard({ result }: { result: OwnerSightingRes
       <div className="section-heading">
         <div>
           <h2>카메라 주인 인식</h2>
-          <p>로보독 카메라의 가장 최근 얼굴 인식 결과입니다.</p>
+          <p>로보독 카메라의 가장 최근 주인 인식 결과입니다.</p>
         </div>
         <span className={`badge ${tone}`}>{label}</span>
       </div>
@@ -34,7 +34,7 @@ export default function OwnerSightingCard({ result }: { result: OwnerSightingRes
       </div>
       <dl className="details owner-details">
         <div>
-          <dt>화면 속 얼굴</dt>
+          <dt>화면 속 사람</dt>
           <dd>{sighting ? `${sighting.facesInFrame}명` : '수신 대기'}</dd>
         </div>
         <div>

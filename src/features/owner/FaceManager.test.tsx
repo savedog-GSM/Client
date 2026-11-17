@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import FaceManager from './FaceManager'
 
-it('선택한 얼굴 사진을 등록하고 완료 결과를 표시한다', async () => {
+it('선택한 주인 사진을 등록하고 완료 결과를 표시한다', async () => {
   const api = {
     registerOwnerFace: vi.fn().mockResolvedValue({
       id: 7,
@@ -18,9 +18,9 @@ it('선택한 얼굴 사진을 등록하고 완료 결과를 표시한다', asyn
     <FaceManager api={api as never} registeredFaces={0} disabled={false} onChange={onChange} />,
   )
   const image = new File(['face'], 'owner.jpg', { type: 'image/jpeg' })
-  fireEvent.change(screen.getByLabelText('얼굴 사진'), { target: { files: [image] } })
-  fireEvent.click(screen.getByRole('button', { name: '얼굴 등록' }))
+  fireEvent.change(screen.getByLabelText('주인 사진'), { target: { files: [image] } })
+  fireEvent.click(screen.getByRole('button', { name: '주인 사진 등록' }))
   await waitFor(() => expect(api.registerOwnerFace).toHaveBeenCalledWith(image))
-  expect(screen.getByText('얼굴 #7 등록 완료')).toBeTruthy()
+  expect(screen.getByText('주인 사진 #7 등록 완료')).toBeTruthy()
   expect(onChange).toHaveBeenCalledOnce()
 })
