@@ -14,7 +14,7 @@ vi.mock('./reverseGeocode', () => ({ reverseGeocode: vi.fn() }))
 vi.mock('./walkingRoute', () => ({ searchWalkingRoute: vi.fn() }))
 
 const robot = vi.hoisted(() => ({
-  api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn() },
+  api: { segments: vi.fn(), records: vi.fn(), searchPath: vi.fn(), navigation: vi.fn() },
   getCurrentPosition: vi.fn(),
 }))
 vi.mock('../../app/RobotProvider', () => ({
@@ -47,6 +47,23 @@ beforeEach(() => {
     distanceMeters: 1300,
     averageRiskScore: 1,
     maxRiskLevel: 'SAFE',
+  })
+  robot.api.navigation.mockReset().mockResolvedValue({
+    active: false,
+    purpose: null,
+    mode: null,
+    status: 'IDLE',
+    message: '대기 중',
+    target: null,
+    targetAccuracy: null,
+    targetUpdatedAt: null,
+    robot: null,
+    distanceMeters: null,
+    plannedPath: null,
+    lastCommand: null,
+    lastCommandAt: null,
+    startedAt: null,
+    finishedAt: null,
   })
   robot.api.segments.mockResolvedValue([])
   robot.getCurrentPosition.mockReset()

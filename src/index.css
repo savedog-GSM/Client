@@ -803,6 +803,57 @@ button[aria-pressed='true'] {
 .route-mode-options svg {
   flex-shrink: 0;
 }
+.navigation-control {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  border: 1px solid #dce5df;
+  border-radius: 12px;
+  background: #fbfdfc;
+}
+.navigation-control-heading,
+.navigation-control-summary,
+.navigation-control-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navigation-control-heading {
+  justify-content: space-between;
+}
+.navigation-control-heading h3,
+.navigation-control-heading p,
+.navigation-control-summary p {
+  margin: 0;
+}
+.navigation-control-heading h3 {
+  font-size: 15px;
+}
+.navigation-control-heading p,
+.navigation-control-summary small {
+  color: #71847b;
+  font-size: 12px;
+}
+.navigation-control-summary {
+  align-items: flex-start;
+}
+.navigation-control-summary svg {
+  flex-shrink: 0;
+  color: #269569;
+}
+.navigation-control-summary div {
+  display: grid;
+  gap: 5px;
+}
+.navigation-control-actions {
+  justify-content: flex-end;
+}
+.navigation-control-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .location-page {
   max-width: 650px;
   padding: 15px 24px 40px;
