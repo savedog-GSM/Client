@@ -4,6 +4,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { report } from '../../test/fixtures'
 import ReportDetail from './ReportDetail'
+import { sampleReports } from './sampleReports'
 
 const robot = vi.hoisted(() => ({
   api: { report: vi.fn(), submit: vi.fn(), dismiss: vi.fn(), photo: vi.fn() },
@@ -44,4 +45,14 @@ it('상세 조회가 제출 완료이면 오래된 목록 상태로 되돌리지
   render(<ReportDetail id={report.id} />)
   await screen.findByText('제출 완료')
   expect(screen.queryByRole('button', { name: '기각' })).toBeNull()
+})
+it('시연용 예시는 서버 조회 없이 사진과 정보를 표시한다', async () => {
+  const sample = sampleReports[0]
+  render(<ReportDetail id={sample.id} sample={sample} />)
+  expect(await screen.findByText('시연용 예시 신고입니다.')).toBeTruthy()
+  expect(
+    screen.getByRole('img', { name: `신고 #${sample.id} 현장 사진` }).getAttribute('src'),
+  ).toBe(sample.photoUrl)
+  expect(robot.api.report).not.toHaveBeenCalled()
+  expect(robot.api.photo).not.toHaveBeenCalled()
 })

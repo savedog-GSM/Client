@@ -1,8 +1,9 @@
 import { Empty, ErrorNotice, reportNames, RiskBadge, time } from '../../components/ui'
 import { hazardNames } from './reportLabels'
 import { useReportDetail } from './useReportDetail'
+import type { SampleReport } from './sampleReports'
 
-export default function ReportDetail({ id }: { id: number }) {
+export default function ReportDetail({ id, sample }: { id: number; sample?: SampleReport }) {
   const {
     current,
     error,
@@ -20,7 +21,7 @@ export default function ReportDetail({ id }: { id: number }) {
     processReport,
     retry,
     handlePhotoError,
-  } = useReportDetail(id)
+  } = useReportDetail(id, sample)
   return (
     <section className="panel report-detail">
       <ErrorNotice message={error} retry={retry} />
@@ -135,6 +136,7 @@ export default function ReportDetail({ id }: { id: number }) {
           <p role="status" className="muted">
             {message}
           </p>
+          {sample && <p className="muted">시연용 예시 신고입니다.</p>}
         </>
       )}
     </section>
