@@ -3,7 +3,7 @@ import { errorMessage } from '../../api/client'
 import type { Report } from '../../api/types'
 import { useRobot } from '../../app/RobotProvider'
 
-export function useReportDetail(id: number) {
+export function useReportDetail(id: number, sample?: Report & { photoUrl: string }) {
   const { api, reports, updateReport } = useRobot()
   const liveReport = reports.find((report) => report.id === id)
   const [report, setReport] = useState<Report | null>(null)
@@ -16,6 +16,11 @@ export function useReportDetail(id: number) {
   const [revision, setRevision] = useState(0)
   const [message, setMessage] = useState('')
   useEffect(() => {
+    if (sample) {
+      setReport(sample)
+      setError('')
+      return
+    }
     let active = true
     setError('')
     api
@@ -29,10 +34,15 @@ export function useReportDetail(id: number) {
     return () => {
       active = false
     }
-  }, [api, id, revision, liveReport])
+  }, [api, id, revision, liveReport, sample])
   const hasPhoto = report?.hasPhoto ?? false
   useEffect(() => {
     if (!hasPhoto) return
+    if (sample) {
+      setPhoto(sample.photoUrl)
+      setPhotoError('')
+      return
+    }
     let active = true
     const load = () =>
       api
@@ -55,7 +65,7 @@ export function useReportDetail(id: number) {
       active = false
       clearInterval(timer)
     }
-  }, [api, id, hasPhoto, revision])
+  }, [api, id, hasPhoto, revision, sample])
   async function processReport() {
     if (!report || !action) return
     setPending(true)
@@ -82,8 +92,9 @@ export function useReportDetail(id: number) {
     }
   }
   const current =
-    liveReport && ['SUBMITTED', 'DISMISSED'].includes(liveReport.status) ? liveReport : report
-  const canProcess = current && ['PENDING', 'FAILED'].includes(current.status)
+    sample ??
+    (liveReport && ['SUBMITTED', 'DISMISSED'].includes(liveReport.status) ? liveReport : report)
+  const canProcess = !sample && current && ['PENDING', 'FAILED'].includes(current.status)
   const validReceipt =
     !!receipt.trim() &&
     receipt.trim().length <= 100 &&

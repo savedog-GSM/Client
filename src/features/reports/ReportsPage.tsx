@@ -5,12 +5,15 @@ import { Empty, ErrorNotice, PageTitle, reportNames, time } from '../../componen
 
 import { hazardNames } from './reportLabels'
 import ReportDetail from './ReportDetail'
+import { sampleReports } from './sampleReports'
 
 export default function ReportsPage() {
   const { reports, reportsError, reportsLoading, retry } = useRobot()
   const [filter, setFilter] = useState<ReportStatus | ''>('')
-  const [selected, setSelected] = useState<number | null>(null)
-  const filtered = reports.filter((report) => !filter || report.status === filter)
+  const [selected, setSelected] = useState<number | null>(sampleReports[0].id)
+  const allReports = [...sampleReports, ...reports]
+  const filtered = allReports.filter((report) => !filter || report.status === filter)
+  const sample = sampleReports.find((report) => report.id === selected)
   return (
     <>
       <PageTitle
@@ -31,7 +34,7 @@ export default function ReportsPage() {
             <h2>신고 목록</h2>
             <span>{filtered.length}건</span>
           </div>
-          {reportsLoading ? (
+          {reportsLoading && reports.length === 0 ? (
             <Empty>신고를 불러오는 중입니다.</Empty>
           ) : filtered.length ? (
             filtered.map((report) => (
@@ -60,7 +63,7 @@ export default function ReportsPage() {
           )}
         </section>
         {selected !== null ? (
-          <ReportDetail key={selected} id={selected} />
+          <ReportDetail key={selected} id={selected} sample={sample} />
         ) : (
           <section className="panel">
             <Empty>목록에서 검토할 신고를 선택해주세요.</Empty>
